@@ -2,14 +2,50 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import max from '../../image/Group 75.png';
+import { useAuthStore } from '@/store/authStore';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useRouter } from 'next/navigation';
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const url = useAuthStore((state) => state.url);
+  const router = useRouter();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Add forgot password API call here
-    console.log('Reset link sent to:', email);
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${url}/auth/request-password-reset`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success('Password link sent to your email.');
+
+        // Navigate to OTP page after 2 seconds
+        setTimeout(() => {
+          router.push(`/otp?email=${encodeURIComponent(email)}`);
+        }, 2000);
+
+        setEmail('');
+      } else {
+        toast.error(data.message || 'Failed to send reset link.');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('No Internet Connection!');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -34,7 +70,6 @@ const ForgotPasswordPage = () => {
           <input
             id="email"
             type="email"
-            name="email"
             placeholder="Enter your email"
             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             onChange={(e) => setEmail(e.target.value)}
@@ -43,9 +78,36 @@ const ForgotPasswordPage = () => {
           />
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition"
+            className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition flex justify-center items-center"
+            disabled={loading}
           >
-            Send Reset Link
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <svg
+                  className="animate-spin h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8z"
+                  ></path>
+                </svg>
+                Sending...
+              </div>
+            ) : (
+              'Send Reset Link'
+            )}
           </button>
         </form>
 
@@ -53,6 +115,8 @@ const ForgotPasswordPage = () => {
           © {new Date().getFullYear()}. Designed by Tosh Consult Inc.
         </p>
       </div>
+
+      <ToastContainer position="top-center" autoClose={3000} />
     </div>
   );
 };

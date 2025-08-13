@@ -24,42 +24,44 @@ const Page = () => {
     console.log('Welcome completed!');
   };
 
-  const handleCreateAccount = async (e) => {
-    e.preventDefault();
+const handleCreateAccount = async (e) => {
+  e.preventDefault();
 
-    if (password !== confirmPassword) {
-      toast.error('Passwords do not match');
-      return;
+  if (password !== confirmPassword) {
+    toast.error('Passwords do not match');
+    return;
+  }
+
+  setCreate(true);
+
+  try {
+    const res = await fetch(`${url}/auth/register`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ full_name: name, email, password }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data?.detail || 'Something went wrong');
     }
 
-    setCreate(true);
+    toast.success('Account created successfully!');
+    setTimeout(() => {
+      // Redirect to success page with parameters
+      router.push('/status?type=register&status=success');
+    }, 2000);
 
-    try {
-      const res = await fetch(`${url}/auth/register`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ full_name: name, email, password }),
-      });
+  } catch (error) {
+    toast.error(error.message);
+  } finally {
+    setCreate(false);
+  }
+};
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data?.message || 'Something went wrong');
-      }
-
-      toast.success('Account created successfully! Redirecting...');
-      setTimeout(() => {
-        router.push('/login');
-      }, 2000);
-
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setCreate(false);
-    }
-  };
 
   return (
     <>
