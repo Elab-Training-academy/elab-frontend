@@ -62,13 +62,13 @@ const LoginPage = () => {
   return (
     <main className="flex items-center justify-center min-h-screen bg-white px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-6">
-        <div className="flex items-center justify-center">
+        <a href='/' className="flex items-center justify-center">
           <Image
             src={max}
             alt="ELAB Logo"
             className="w-[50%] max-w-[80px] sm:max-w-[70px] md:max-w-[50px] lg:max-w-[80px] xl:max-w-[70px] h-auto mb-4"
           />
-        </div>
+        </a>
 
         <div className="flex flex-col items-center justify-center gap-1">
           <BlurText

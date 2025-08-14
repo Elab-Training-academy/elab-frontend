@@ -40,7 +40,7 @@ const SuccessPage = () => {
         } else if (type === 'reset' || type === 'register') {
           router.push('/login');
         }
-      }, 3000);
+      }, 1000);
 
       return () => clearTimeout(timer);
     }

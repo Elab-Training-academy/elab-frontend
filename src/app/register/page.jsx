@@ -69,13 +69,13 @@ const handleCreateAccount = async (e) => {
         onSubmit={handleCreateAccount}
         className="space-y-4 max-w-md mx-auto p-6 bg-white "
       >
-        <div className="flex items-center justify-center">
+         <a href='/' className="flex items-center justify-center">
           <Image
             src={max}
             alt="ELAB Logo"
             className="max-w-[80px] h-auto mb-4"
           />
-        </div>
+        </a>
 
         <div className="flex flex-col items-center text-center">
           <BlurText
@@ -138,7 +138,7 @@ const handleCreateAccount = async (e) => {
             placeholder="Confirm your password"
             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
-            value={confirmPassword}
+            value={confirmPassword} 
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
         </div>

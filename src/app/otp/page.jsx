@@ -29,7 +29,7 @@ const OtpVerificationPage = ({ email: initialEmail }) => {
       if (res.ok) {
         toast.success('OTP verified successfully!');
         
-        // ✅ Delay navigation so the toast is visible
+        
         setTimeout(() => {
           router.push(`/resetpassword?${encodeURIComponent(email)}`);
         }, 1500);
@@ -66,13 +66,13 @@ const OtpVerificationPage = ({ email: initialEmail }) => {
   return (
     <div className="min-h-screen flex flex-col justify-center items-center px-4">
       <div className="flex flex-col items-center text-center max-w-md w-full">
-        <div className="flex items-center justify-center mb-4">
+         <a href='/' className="flex items-center justify-center mb-4">
           <Image
             src={max}
             alt="ELAB Logo"
             className="w-[100%] max-w-[80px] sm:max-w-[70px] md:max-w-[50px] lg:max-w-[80px] xl:max-w-[70px] h-auto"
           />
-        </div>
+        </a>
 
         {/* OTP Verification */}
         <motion.div
@@ -101,7 +101,7 @@ const OtpVerificationPage = ({ email: initialEmail }) => {
             </div>
             <button
               type="submit"
-              className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600 transition mt-4"
+              className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-green-600 transition mt-4"
             >
               Verify OTP
             </button>

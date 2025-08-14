@@ -57,9 +57,9 @@ const ResetPasswordPage = () => {
   return (
     <main className="min-h-screen flex justify-center items-center px-4">
       <div className="w-full max-w-md p-6 text-center">
-        <div className="flex justify-center mb-4">
+         <a href='/' className="flex justify-center mb-4">
           <Image src={max} alt="ELAB Logo" className="w-[50px] h-auto" />
-        </div>
+        </a>
 
         <h1 className="text-2xl sm:text-3xl font-bold mb-2">Reset Password</h1>
         <p className="mb-6 text-gray-600 text-sm sm:text-base">

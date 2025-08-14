@@ -18,19 +18,19 @@ const Navbar = () => {
           <div className='flex items-center justify-between h-16 lg:h-20'>
             <div className='flex-shrink-0'>
             <Image
-                               src={max}
-                               alt="Description of the image"
-                               width={600}
-                               height={400}
-                               className="h-10 lg:h-12 w-auto mb-4"
-                           /> 
+                src={max}
+                alt="Description of the image"
+                width={600}
+                height={400}
+                className="h-10 lg:h-12 w-auto mb-4"
+            /> 
             </div>
             <ul className='hidden lg:flex items-center space-x-8 font-bold text-gray-700'>
               <li className='hover:text-blue-600 cursor-pointer transition-colors duration-200'>Home</li>
               <li className='hover:text-blue-600 cursor-pointer transition-colors duration-200'>Exam prep</li>
               <li className='hover:text-blue-600 cursor-pointer transition-colors duration-200'>Why us</li>
               <li className='hover:text-blue-600 cursor-pointer transition-colors duration-200'>Glossary</li>
-              <li className='hover:text-blue-600 cursor-pointer transition-colors duration-200'>Contact us</li>
+              <a href='/contact'  className='hover:text-blue-600 cursor-pointer transition-colors duration-200'>Contact us</a>
             </ul>
 
         
@@ -80,9 +80,9 @@ const Navbar = () => {
                 <li className='block px-3 py-2 hover:text-blue-600 hover:bg-white rounded-md cursor-pointer transition-all duration-200'>
                   Glossary
                 </li>
-                <li className='block px-3 py-2 hover:text-blue-600 hover:bg-white rounded-md cursor-pointer transition-all duration-200'>
+                <a href='/contact'  className='block px-3 py-2 hover:text-blue-600 hover:bg-white rounded-md cursor-pointer transition-all duration-200'>
                   Contact us
-                </li>
+                </a>
               </ul>
               
               
