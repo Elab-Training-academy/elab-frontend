@@ -4,7 +4,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Navbar from '@/component/Navbar';
 import  Faq from '@/component/Faq';
-import Footer from '@/component/Footer'
+import Footer from '@/component/Footer';
+import Trial from '@/component/Trial';
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -55,13 +56,13 @@ const ContactPage = () => {
     <div className="flex justify-center items-center min-h-screen  p-4">
       <form 
         onSubmit={handleSubmit} 
-        className="rounded-lg p-6 w-full max-w-md space-y-4 bg-white shadow-lg"
+        className="rounded-lg p-6 w-full max-w-md space-y-4 "
       >
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
           Send Us a Message
         </h2>
 
-        {/* Name */}
+       
         <div>
           <label htmlFor="name" className="block font-semibold mb-2 text-gray-700">
             Full Name
@@ -77,7 +78,7 @@ const ContactPage = () => {
           />
         </div>
 
-        {/* Email */}
+
         <div>
           <label htmlFor="email" className="block font-semibold mb-2 text-gray-700">
             Email Address
@@ -93,7 +94,7 @@ const ContactPage = () => {
           />
         </div>
 
-        {/* Subject */}
+      
         <div>
           <label htmlFor="subject" className="block font-semibold mb-2 text-gray-700">
             Subject
@@ -109,7 +110,7 @@ const ContactPage = () => {
           />
         </div>
 
-        {/* Message */}
+       
         <div>
           <label htmlFor="message" className="block font-semibold mb-2 text-gray-700">
             Message
@@ -125,7 +126,7 @@ const ContactPage = () => {
           />
         </div>
 
-        {/* Submit Button */}
+        
         <button
           type="submit"
           disabled={loading}
@@ -166,7 +167,7 @@ const ContactPage = () => {
     </div>
     <Faq />
 
-    
+    <Trial />
     <Footer />
     </>
   );

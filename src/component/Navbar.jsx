@@ -27,9 +27,8 @@ const Navbar = () => {
             </div>
             <ul className='hidden lg:flex items-center space-x-8 font-bold text-gray-700'>
               <li className='hover:text-blue-600 cursor-pointer transition-colors duration-200'>Home</li>
-              <li className='hover:text-blue-600 cursor-pointer transition-colors duration-200'>Exam prep</li>
+              <a href='/ExamPrep' className='hover:text-blue-600 cursor-pointer transition-colors duration-200'>Exam prep</a>
               <li className='hover:text-blue-600 cursor-pointer transition-colors duration-200'>Why us</li>
-              <li className='hover:text-blue-600 cursor-pointer transition-colors duration-200'>Glossary</li>
               <a href='/contact'  className='hover:text-blue-600 cursor-pointer transition-colors duration-200'>Contact us</a>
             </ul>
 
@@ -39,10 +38,10 @@ const Navbar = () => {
                 <FaUser className='text-sm' />
                 Profile
               </button>
-              <button className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors duration-200 font-semibold'>
+              <a href='/login' className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors duration-200 font-semibold'>
                 Enroll Now
                 <FaLongArrowAltRight className='text-sm' />
-              </button>
+              </a>
             </div>
 
             
@@ -71,9 +70,9 @@ const Navbar = () => {
                 <li className='block px-3 py-2 hover:text-blue-600 hover:bg-white rounded-md cursor-pointer transition-all duration-200'>
                   Home
                 </li>
-                <li className='block px-3 py-2 hover:text-blue-600 hover:bg-white rounded-md cursor-pointer transition-all duration-200'>
+                <a href='/ExamPrep' className='block px-3 py-2 hover:text-blue-600 hover:bg-white rounded-md cursor-pointer transition-all duration-200'>
                   Exam prep
-                </li>
+                </a>
                 <li className='block px-3 py-2 hover:text-blue-600 hover:bg-white rounded-md cursor-pointer transition-all duration-200'>
                   Why us
                 </li>
@@ -91,7 +90,7 @@ const Navbar = () => {
                   <FaUser className='text-sm' />
                   Profile
                 </button>
-                {/* <button className='flex items-center justify-center gap-2 w-[20vw] bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-colors duration-200 font-semibold'>
+                {/* <button className='flex items-center justify-center gap-2 w-[2vw] bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-colors duration-200 font-semibold'>
                   Enroll Now
                   <FaLongArrowAltRight className='text-sm' />
                 </button> */}

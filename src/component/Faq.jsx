@@ -56,10 +56,10 @@ const Faq = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="mx-auto max-w-4xl px-6">
+    <div className=" flex justify-center items-center bg-gray-50 py-8">
+      <div className=" flex justify-center items-center w-[70vw]">
         {/* Main FAQ Card */}
-        <div className="rounded-lg bg-blue-600 p-8 text-white shadow-lg">
+        <div className="rounded-lg w-[70vw]  bg-blue-600 p-8 text-white shadow-lg">
           {/* Header */}
           <h1 className="mb-6 text-2xl font-bold">Exam Preparation FAQ</h1>
           
