@@ -51,7 +51,7 @@ export default function Page() {
             </div>
           </div>
           <div className="text-center">
-            <button className="mt-4  border-2 border-black text-black p-1 w-[20vw]  rounded-[13px] hover:bg-black hover:text-white transition">
+            <button className="mt-4  border-2 border-[#7e7d7d] text-black p-1 w-[20vw]  rounded-[13px] hover:bg-blue-600 hover:text-white transition">
             Stat Case Study →
             </button>
           </div>
@@ -94,7 +94,7 @@ export default function Page() {
             </div>
           </div>
           <div className="text-center">
-            <button className="mt-4  border-2 border-black text-black p-1 w-[20vw]  rounded-[13px] hover:bg-black hover:text-white transition">
+            <button className="mt-4  border-2 border-black text-black p-1 w-[20vw]  rounded-[13px] hover:bg-blue-600 hover:text-white transition">
             Stat Case Study →
             </button>
           </div>

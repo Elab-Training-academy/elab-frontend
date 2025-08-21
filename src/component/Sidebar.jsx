@@ -1,6 +1,6 @@
 "use client";
-import Image from 'next/image';
-import max from '../../src//image/logo.png';
+import Image from "next/image";
+import max from "../../src/image/logo.png";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -16,59 +16,102 @@ import {
   Trophy,
   User,
   LogOut,
+  X,
 } from "lucide-react";
 
 const menuItems = [
   { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { name: "My Courses", path: "/dashboard/my-courses", icon: BookOpen },
-  { name: "AI Study Companion", path: "/dashboard/AIStudyCompanion", icon: Bot },
-  { name: "Exam Readiness", path: "/dashboard/exam-readiness", icon: ClipboardCheck },
+  { name: "AI Study Companion", path: "/dashboard/ai-study-companion", icon: Bot },
+  { name: "Exam Readiness", path: "/dashboard/exam-readines", icon: ClipboardCheck },
   { name: "Question Bank", path: "/dashboard/question-bank", icon: HelpCircle },
   { name: "Smart Practice", path: "/dashboard/smart-practice", icon: Lightbulb },
-  { name: "Case Studies", path: "/dashboard/CaseStudies", icon: FileText },
-  { name: "Flashcards", path: "/dashboard/Flashcard", icon: Layers },
-  { name: "My Performance Analytics", path: "/dashboard/performance", icon: BarChart3 },
+  { name: "Case Studies", path: "/dashboard/case-studies", icon: FileText },
+  { name: "Flashcards", path: "/dashboard/flashcard", icon: Layers },
+  { name: "My Performance Analytics", path: "/dashboard/my-performance-analytics", icon: BarChart3 },
   { name: "Leader Board", path: "/dashboard/leaderboard", icon: Trophy },
   { name: "Profile", path: "/dashboard/profile", icon: User },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ onClose }) {
   const pathname = usePathname();
+  
+  const handleClose = () => {
+    if (typeof onClose === "function") onClose();
+  };
+
+  const handleNavigation = () => {
+    // Close mobile sidebar on navigation
+    if (window.innerWidth < 1024) {
+      handleClose();
+    }
+  };
 
   return (
-    <aside className="w-64 h-screen bg-white shadow-md flex flex-col justify-between">
-      {/* Logo / Brand */}
-      <div className='p-1'>
-            <Image
-            src={max}
-           
-            alt="ELAB Logo"
-            className=" w-[13vw] max-w-[10vw] sm:max-w-[70px] md:max-w-[50vw] lg:max-w-[50vw] xl:max-w-[50vw] "
+    <aside className="h-screen w-64 bg-white shadow-lg flex flex-col">
+      {/* Header with Logo and Close Button */}
+      <div className="p-4 flex items-center justify-between border-b border-gray-200">
+        <div className="flex items-center">
+          <Image 
+            src={max} 
+            alt="ELAB Logo" 
+            className="w-[120px] h-auto" 
+            priority
           />
-        {/* <h1 className="text-xl font-bold px-6 py-4 border-b">ELAB Academy</h1> */}
-        <nav className="mt-4">
+        </div>
+        {/* Close button for mobile */}
+        <button
+          onClick={handleClose}
+          className="lg:hidden p-1 rounded-md hover:bg-gray-100 transition-colors"
+          aria-label="Close navigation menu"
+        >
+          <X size={20} className="text-gray-600" />
+        </button>
+      </div>
+
+      {/* Navigation Menu */}
+      <nav className="flex-1 overflow-y-auto py-2">
+        <div className="space-y-1">
           {menuItems.map((item, i) => {
             const Icon = item.icon;
+            const isActive = pathname === item.path;
+            
             return (
-              <Link key={i} href={item.path}>
+              <Link 
+                key={i} 
+                href={item.path} 
+                onClick={handleNavigation}
+                className="block"
+              >
                 <div
-                  className={`flex items-center gap-3 px-6 py-3 cursor-pointer hover:bg-gray-100 transition ${
-                    pathname === item.path ? "bg-blue-100 font-semibold text-blue-600" : "text-gray-700"
+                  className={`mx-2 flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                    isActive
+                      ? "bg-blue-100 text-blue-600 shadow-sm border-l-4 border-blue-500"
+                      : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
                   }`}
                 >
-                  <Icon size={18} />
-                  <span className="font-bold text-[14px] ">{item.name}</span>
+                  <Icon size={18} className={isActive ? "text-blue-600" : "text-gray-500"} />
+                  <span className={`font-medium text-sm ${isActive ? "font-semibold" : ""}`}>
+                    {item.name}
+                  </span>
                 </div>
               </Link>
             );
           })}
-        </nav>
-      </div>
+        </div>
+      </nav>
 
-      {/* Logout */}
-      <div className="p-6 border-t">
-        <button className="flex items-center gap-2 text-red-500 font-medium hover:text-red-600 transition">
-          <LogOut size={18} /> Logout
+      {/* Logout Section */}
+      <div className="p-4 border-t border-gray-200 mt-auto">
+        <button 
+          className="w-full flex items-center gap-3 px-4 py-3 text-red-500 font-medium hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+          onClick={() => {
+            // Add your logout logic here
+            console.log("Logout clicked");
+          }}
+        >
+          <LogOut size={18} />
+          <span className="text-sm">Logout</span>
         </button>
       </div>
     </aside>

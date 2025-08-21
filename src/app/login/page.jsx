@@ -99,7 +99,7 @@ const LoginPage = () => {
           </div>
 
           <div className="flex flex-col gap-2 relative">
-            <label htmlFor="password" className="font-bold">Password</label>
+            <label htmlFor="password" className="font-bold justify-end items-center  align-super bg-slate-50 sk ">Password</label>
             <input
               id="password"
               type={showPassword ? 'text' : 'password'}

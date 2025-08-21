@@ -1,37 +1,27 @@
 "use client";
 import { useState, useEffect } from "react";
-import Sidebar from "@/component/Sidebar";
+import Adminbar from "../../component/adminbar.jsx";
 import { Menu } from "lucide-react";
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DashboardLayout({ children }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  // Close sidebar when screen size changes to desktop
+  // Close sidebar when resizing to desktop
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024 && isOpen) {
         setIsOpen(false);
       }
     };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [isOpen]);
 
-  // Prevent body scroll when mobile sidebar is open
+  
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-
+    document.body.style.overflow = isOpen ? "hidden" : "unset";
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     };
   }, [isOpen]);
 
@@ -46,34 +36,34 @@ export default function DashboardLayout({
         <Menu size={22} className="text-gray-700" />
       </button>
 
-      {/* Desktop Sidebar - Always visible on lg+ screens */}
+      {/* Desktop Sidebar */}
       <div className="hidden lg:block w-64 shrink-0">
-        <div className="fixed top-0 left-0 h-full w-64">
-          <Sidebar onClose={() => setIsOpen(false)} />
+        <div className="fixed top-0 left-0 h-screen w-64 border-r bg-white">
+          <Adminbar onClose={() => setIsOpen(false)} />
         </div>
       </div>
 
-      {/* Mobile Sidebar - Sliding panel */}
+      {/* Mobile Sidebar */}
       <div
-        className={`fixed lg:hidden z-40 inset-y-0 left-0 w-64 transform ${
+        className={`fixed lg:hidden z-40 inset-y-0 left-0 w-64 bg-white shadow-lg transform ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } transition-transform duration-300 ease-in-out`}
       >
-        <Sidebar onClose={() => setIsOpen(false)} />
+        <Adminbar onClose={() => setIsOpen(false)} />
       </div>
 
       {/* Overlay for mobile */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden transition-opacity duration-300"
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
           onClick={() => setIsOpen(false)}
           aria-hidden="true"
         />
       )}
 
       {/* Main Content */}
-      <main className="flex-1 lg:ml-0 min-h-screen">
-        <div className="p-4 sm:p-6 lg:p-8 pt-16 lg:pt-6">
+      <main className="flex-1 min-h-screen lg:ml-64">
+        <div className="p-4 sm:p-6 lg:p-8">
           {children}
         </div>
       </main>
