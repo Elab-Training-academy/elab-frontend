@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 
 const menuItems = [
-  { name: "Overview", href: "/", icon: LayoutDashboard },
+  { name: "Overview", href: "/elab-admin", icon: LayoutDashboard },
   { name: "Course Management", href: "/courses", icon: BookOpen },
   { name: "User Management", href: "/users", icon: Users },
   { name: "Question Bank", href: "/questions", icon: HelpCircle },
