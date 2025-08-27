@@ -117,7 +117,7 @@ const LoginPage = () => {
             </span>
           </div>
 
-          <a href='/forgetpassword' className="text-sm text-blue-600 cursor-pointer hover:underline">
+          <a href='/forget-password' className="text-sm text-blue-600 cursor-pointer hover:underline">
             Forgot Password? Get a new one
           </a>
 
