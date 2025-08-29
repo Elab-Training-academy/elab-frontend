@@ -34,6 +34,7 @@ const menuItems = [
   { name: "Course Management", href: "/elab-admin/courses", icon: BookOpen },
   { name: "User Management", href: "/elab-admin/users", icon: Users },
   { name: "Question Bank", href: "/elab-admin/questions", icon: HelpCircle },
+  { name: "Categories", href: "/elab-admin/categories", icon: HelpCircle },
   { name: "Smart Practice", href: "/elab-admin/practice", icon: PlayCircle },
   { name: "Subscription management", href: "/elab-admin/subscription", icon: CreditCard },
   { name: "CAT Testing", href: "/elab-admin/cat-testing", icon: PlayCircle },
