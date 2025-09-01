@@ -1,63 +1,61 @@
-"use client"
-import React from 'react';
-import { Search, Bell, Clock } from 'lucide-react';
+"use client";
+import React, { useEffect, useState } from "react";
+import { Search, Bell, Clock } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
 
 const QuestionBank = () => {
-  const practiceMode = [
-    {
-      title: 'Study Mode',
-      description: 'Learn with Explanation',
-      color: 'blue'
-    },
-    {
-      title: 'Exam Mode',
-      description: 'Timed Practice',
-      color: 'blue'
-    },
-    {
-      title: 'Review Mode',
-      description: 'Incorrect answers',
-      color: 'blue'
-    },
-    {
-      title: 'Random',
-      description: 'Mixed Question',
-      color: 'blue'
-    }
-  ];
+  const url = useAuthStore(state => state.url);
+  const newToken = useAuthStore(state => state.token)
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const notifications = [
-    {
-      mode: 'Study Mode',
-      subject: 'Fundamentals',
-      questions: 25,
-      timeAgo: '40 mins ago',
-      type: 'study'
-    },
-    {
-      mode: 'Exam Mode',
-      subject: 'Fundamentals',
-      questions: 15,
-      timeAgo: '20 mins ago',
-      type: 'exam'
-    }
-  ];
+  const getToken = localStorage.getItem('token')
+  console.log(getToken);
+  
 
-  const getCardIcon = (type) => {
-    return (
-      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-        <div className="w-4 h-4 bg-blue-600 rounded"></div>
-      </div>
-    );
-  };
+  // Fetch questions from API
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        const res = await fetch(`${url}/questions`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${getToken}`,
+          }
+        })
+        
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        
+        const data = await res.json();
+        
+        // Check if data is an array, if not, try to extract questions from response
+        if (Array.isArray(data)) {
+          setQuestions(data);
+        } else if (data.questions && Array.isArray(data.questions)) {
+          setQuestions(data.questions);
+        } else if (data.data && Array.isArray(data.data)) {
+          setQuestions(data.data);
+        } else {
+          console.error("Unexpected API response structure:", data);
+          setError("Unexpected data format received from server");
+          setQuestions([]); // Set to empty array to prevent map error
+        }
+      } catch (err) {
+        console.error("Error fetching questions:", err);
+        setError(err.message);
+        setQuestions([]); // Set to empty array to prevent map error
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const getNotificationIcon = (type) => {
-    return (
-      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-        <Clock className="w-5 h-5 text-blue-600" />
-      </div>
-    );
-  };
+    fetchQuestions();
+  }, [url, getToken]); // Added dependencies
+
+  // ... rest of your component code remains the same until the return statement
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -77,68 +75,60 @@ const QuestionBank = () => {
           <Bell className="w-6 h-6 text-gray-600" />
         </div>
 
-        {/* Title and Description */}
+        {/* Title */}
         <div className="mb-12">
-          <p className="text-gray-600 mb-2">{}</p>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Question bank</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Question Bank</h1>
           <p className="text-gray-600 text-lg max-w-4xl">
-            Select a practice mode to match your learning style. Whether you want to study at your own pace or challenge yourself under pressure, the choice is yours.
+            Select a practice mode to match your learning style.
           </p>
         </div>
 
-        {/* Practice Mode Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {practiceMode.map((mode, index) => (
-            <div 
-              key={index} 
-              className="bg-white rounded-2xl p-8 border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer group"
-            >
-              {getCardIcon(mode.title)}
-              <h3 className="text-xl font-semibold text-blue-600 mb-2 group-hover:text-blue-700">
-                {mode.title}
-              </h3>
-              <p className="text-gray-600 text-sm">
-                {mode.description}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        {/* All Notifications Section */}
+        {/* Questions Section */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">All notifications</h2>
-          
-          <div className="space-y-4">
-            {notifications.map((notification, index) => (
-              <div 
-                key={index}
-                className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
-              >
-                <div className="flex items-center space-x-4">
-                  {getNotificationIcon(notification.type)}
-                  <div>
-                    <div className="flex items-center space-x-2 mb-1">
-                      <span className="text-blue-600 font-medium text-sm">
-                        {notification.mode}
-                      </span>
-                      <span className="text-gray-600 text-sm">
-                        - {notification.subject}
-                      </span>
-                    </div>
-                    <p className="text-gray-600 text-sm">
-                      {notification.questions} Questions
-                    </p>
-                  </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">
+            All Questions
+          </h2>
+
+          {loading ? (
+            <p className="text-gray-500">Loading questions...</p>
+          ) : error ? (
+            <p className="text-red-500">Error: {error}</p>
+          ) : questions.length === 0 ? (
+            <p className="text-gray-500">No questions available.</p>
+          ) : (
+            <div className="space-y-6">
+              {questions.map((q, index) => (
+                <div
+                  key={q.id || index}
+                  className="p-4 border border-gray-200 rounded-xl bg-gray-50"
+                >
+                  <h3 className="font-medium text-gray-900 mb-2">
+                    {index + 1}. {q.question_text}
+                  </h3>
+                  <ul className="space-y-2">
+                    {q.answer_options && q.answer_options.map((opt) => (
+                      <li
+                        key={opt.id || opt.option_text}
+                        className="flex items-center space-x-2 text-gray-700"
+                      >
+                        <input
+                          type={
+                            q.answer_type === "select_all"
+                              ? "checkbox"
+                              : "radio"
+                          }
+                          name={q.id}
+                          value={opt.option_text}
+                          className="text-blue-600"
+                        />
+                        <span>{opt.option_text}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                
-                <div className="text-right">
-                  <p className="text-gray-500 text-sm">
-                    {notification.timeAgo}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
