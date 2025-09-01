@@ -1,13 +1,15 @@
 import { create } from "zustand";
 
 export const useAuthStore = create((set, get) => ({
-  url: "https://elab-server-xg5r.onrender.com",  // ✅ removed space
+  url: "https://elab-server-xg5r.onrender.com",
   token: null,
   setToken: (token) => set({ token }),
   clearToken: () => set({ token: null }),
   courses: [],
   setCourses: (courses) => set({ courses }),
   loading: false,
+
+
 
   fetchAllCourses: async () => {
     const url = get().url;

@@ -3,11 +3,11 @@ import React, { useState } from 'react';
 import BlurText from './BlurText';
 import Image from 'next/image';
 import max from '../../image/Group 75.png';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import { FaRegEyeSlash, FaRegEye } from "react-icons/fa6";
 import { useAuthStore } from "../../store/authStore";
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
+import ToastWrapper from '../../component/ToastWrapper'; // import wrapper
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -16,48 +16,43 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
 
 
-  // how to set Zustand 
+
   const url = useAuthStore((state) => state.url);
   const setToken = useAuthStore((state) => state.setToken); 
   const router = useRouter();
 
-  const handleAnimationComplete = () => {
-    console.log('Welcome Back animation completed!');
-  };
+
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setSignin(true);
+    e.preventDefault();
+    setSignin(true);
 
-  try {
-    const res = await fetch(`${url}/auth/login`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const res = await fetch(`${url}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (res.ok) {
-      toast.success('Login successful!');
-      localStorage.setItem("token", data.access_token);
-      if (setToken) setToken(data.access_token); 
+      if (res.ok) {
+        toast.success('Login successful!');
+        localStorage.setItem("token", data.access_token);
+        if (setToken) setToken(data.access_token);
 
-      // Redirect to the success page instead of jumping twice
-      router.push('/status?type=login&status=success');
-    } else {
-      toast.error(data.detail || 'Login failed!');
+        // redirect user to dashboard
+        router.push('/dashboard');
+      } else {
+        toast.error(data.detail || 'Login failed!');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('No Internet Connection!');
+    } finally {
+      setSignin(false);
     }
-  } catch (error) {
-    console.error(error);
-    toast.error('No Internet Connection!');
-  } finally {
-    setSignin(false);
-  }
-};
-
+  };
 
   return (
     <main className="flex items-center justify-center min-h-screen bg-white px-4 sm:px-6 lg:px-8">
@@ -77,7 +72,7 @@ const LoginPage = () => {
             delay={150}
             animateBy="words"
             direction="top"
-            onAnimationComplete={handleAnimationComplete}
+            
           />
           <p className="text-[18px] font-normal text-center text-gray-700">
             Ready to pick up where you left off?
@@ -99,7 +94,7 @@ const LoginPage = () => {
           </div>
 
           <div className="flex flex-col gap-2 relative">
-            <label htmlFor="password" className="font-bold justify-end items-center  align-super bg-slate-50 sk ">Password</label>
+            <label htmlFor="password" className="font-bold">Password</label>
             <input
               id="password"
               type={showPassword ? 'text' : 'password'}
@@ -168,7 +163,8 @@ const LoginPage = () => {
         </p>
       </div>
 
-      <ToastContainer position="top-center" autoClose={3000} />
+      {/* Toastify Wrapper */}
+      <ToastWrapper />
     </main>
   );
 };

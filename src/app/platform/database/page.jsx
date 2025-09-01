@@ -1,6 +1,5 @@
 // app/page.jsx
 "use client";
-
 import { useState } from "react";
 import { Save, Database, Server, Cpu, Clock, Hash } from "lucide-react";
 

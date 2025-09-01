@@ -27,7 +27,7 @@ const menuItems = [
   { name: "Question Bank", path: "/dashboard/question-bank", icon: HelpCircle },
   { name: "Smart Practice", path: "/dashboard/smart-practice", icon: Lightbulb },
   { name: "Case Studies", path: "/dashboard/case-studies", icon: FileText },
-  { name: "Flashcards", path: "/dashboard/flashcard", icon: Layers },
+  { name: "Flashcards", path: "/dashboard/Flashcard", icon: Layers },
   { name: "My Performance Analytics", path: "/dashboard/my-performance-analytics", icon: BarChart3 },
   { name: "Leader Board", path: "/dashboard/leaderboard", icon: Trophy },
   { name: "Profile", path: "/dashboard/profile", icon: User },
@@ -49,7 +49,7 @@ export default function Sidebar({ onClose }) {
 
   return (
     <aside className="h-screen w-64 bg-white shadow-lg flex flex-col">
-      {/* Header with Logo and Close Button */}
+
       <div className="p-4 flex items-center justify-between border-b border-gray-200">
         <div className="flex items-center">
           <Image 
@@ -59,7 +59,6 @@ export default function Sidebar({ onClose }) {
             priority
           />
         </div>
-        {/* Close button for mobile */}
         <button
           onClick={handleClose}
           className="lg:hidden p-1 rounded-md hover:bg-gray-100 transition-colors"
@@ -69,7 +68,7 @@ export default function Sidebar({ onClose }) {
         </button>
       </div>
 
-      {/* Navigation Menu */}
+
       <nav className="flex-1 overflow-y-auto py-2">
         <div className="space-y-1">
           {menuItems.map((item, i) => {

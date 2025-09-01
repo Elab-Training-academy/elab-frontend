@@ -47,7 +47,7 @@ const menuItems = [
     href: "/platform",
     icon: Sliders,
     subItems: [
-      { name: "General", href: "/platform/general", icon: Settings },
+      
       { name: "Features", href: "/platform/features", icon: ToggleLeft },
       { name: "Email", href: "/platform/email", icon: Mail },
       { name: "Security", href: "/platform/security", icon: Lock },

@@ -129,7 +129,7 @@ export default function SmartPractice() {
           </div>
         </div>
 
-        {/* Empty State */}
+       
         <div className="bg-white shadow-md rounded-lg overflow-hidden p-4 md:p-8">
           <div className="flex flex-col items-center justify-center py-6 md:py-8 text-center">
             <div className="mb-3 md:mb-4">
@@ -151,7 +151,7 @@ export default function SmartPractice() {
           </div>
         </div>
 
-        {/* Modal */}
+        
         <AddSmartPracticeModal 
           isOpen={isModalOpen} 
           onClose={() => setIsModalOpen(false)} 
