@@ -9,8 +9,8 @@ import Link from "next/link";
 
 export default function CoursesPage() {
   const [showModal, setShowModal] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editCourse, setEditCourse] = useState(null);
+  // const [editModalOpen, setEditModalOpen] = useState(false);
+  // const [editCourse, setEditCourse] = useState(null);
 
   const fetchAllCourses = useAuthStore((state) => state.fetchAllCourses);
   const newToken = useAuthStore((state) => state.token);
@@ -115,34 +115,6 @@ export default function CoursesPage() {
     }
   };
 
-  // ✅ Edit course status
-  const handleEdit = async (id, newstatus) => {
-    const getToken = localStorage.getItem("token");
-    try {
-      const res = await fetch(`${url}/courses/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${getToken}`,
-        },
-        body: JSON.stringify({ status: newstatus }),
-      });
-
-      if (res.ok) {
-        const updatedCourse = await res.json();
-        setCourses(
-          courses.map((c) =>
-            c.id === id ? { ...c, status: updatedCourse.status } : c
-          )
-        );
-      } else {
-        console.error("Failed to edit course:", res.status);
-      }
-    } catch (error) {
-      console.error("Error editing course:", error);
-    }
-  };
-
   return (
     <div className="flex-1 p-6">
       {/* header */}
@@ -203,15 +175,6 @@ export default function CoursesPage() {
               {/* Action Buttons */}
               <div className="mt-4 flex justify-end gap-2">
                 <button
-                  onClick={() => {
-                    setEditCourse(course);
-                    setEditModalOpen(true);
-                  }}
-                  className="flex items-center gap-1 px-3 py-1 text-sm text-blue-600 border border-blue-600 rounded hover:bg-blue-50"
-                >
-                  <Pencil size={14} /> Edit
-                </button>
-                <button
                   onClick={() => handleDelete(course.id)}
                   className="flex items-center gap-1 px-3 py-1 text-sm text-red-600 border border-red-600 rounded hover:bg-red-50"
                 >
@@ -239,14 +202,6 @@ export default function CoursesPage() {
         onSubmit={handleSubmit}
         courseData={courseData}
         setCourseData={setCourseData}
-      />
-
-      {/* ✅ Edit Modal */}
-      <EditCourseModal
-        isOpen={editModalOpen}
-        onClose={() => setEditModalOpen(false)}
-        course={editCourse}
-        onSave={handleEdit}
       />
     </div>
   );

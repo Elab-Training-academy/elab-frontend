@@ -3,7 +3,19 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
-import { Loader2, Clock, DollarSign, CheckCircle, BookOpen } from "lucide-react";
+import EditCourseModal from "../../../../component/EditCourseModal";
+import CreateModuleModal from "../../../../component/CreateModuleModal";
+import EditModuleModal from "../../../../component/EditModuleModal";
+
+import {
+  Loader2,
+  Clock,
+  DollarSign,
+  CheckCircle,
+  BookOpen,
+  Pencil,
+  Plus,
+} from "lucide-react";
 
 export default function SingleCoursePage() {
   const { id } = useParams();
@@ -12,6 +24,13 @@ export default function SingleCoursePage() {
   const [course, setCourse] = useState(null);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editCourse, setEditCourse] = useState(null);
+  const [showModuleModal, setShowModuleModal] = useState(false);
+  const [modules, setModules] = useState([]);
+
+  const [editModuleOpen, setEditModuleOpen] = useState(false);
+  const [selectedModule, setSelectedModule] = useState(null);
 
   const newToken =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -44,6 +63,18 @@ export default function SingleCoursePage() {
           const catData = await catRes.json();
           setCategories(catData);
         }
+
+        // fetch modules for this course
+        const moduleRes = await fetch(`${url}/modules?course_id=${id}`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${newToken}`,
+          },
+        });
+        if (moduleRes.ok) {
+          const moduleData = await moduleRes.json();
+          setModules(moduleData);
+        }
       } catch (err) {
         console.error("Error fetching data:", err);
       } finally {
@@ -53,6 +84,40 @@ export default function SingleCoursePage() {
 
     fetchData();
   }, [id, url, newToken]);
+
+  // callback after module created
+  const handleModuleCreated = (newModule) => {
+    setModules((prev) => [...prev, newModule]);
+  };
+
+  // callback after module updated
+  const handleModuleUpdated = (updatedModule) => {
+    setModules((prev) =>
+      prev.map((mod) => (mod.id === updatedModule.id ? updatedModule : mod))
+    );
+  };
+
+  const handleEdit = async (courseId, newstatus) => {
+    try {
+      const res = await fetch(`${url}/courses/${courseId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${newToken}`,
+        },
+        body: JSON.stringify({ status: newstatus }),
+      });
+
+      if (res.ok) {
+        const updatedCourse = await res.json();
+        setCourse((prev) => ({ ...prev, status: updatedCourse.status }));
+      } else {
+        console.error("Failed to edit course:", res.status);
+      }
+    } catch (error) {
+      console.error("Error editing course:", error);
+    }
+  };
 
   // resolve category name
   const getCategoryName = (categoryId) => {
@@ -127,8 +192,140 @@ export default function SingleCoursePage() {
               this course here to give learners more context.
             </p>
           </div>
+
+          {/* Edit Course Button */}
+          <div>
+            <button
+              onClick={() => {
+                setEditCourse(course);
+                setEditModalOpen(true);
+              }}
+              className="flex items-center gap-1 px-3 py-1 text-sm text-blue-600 border border-blue-600 rounded hover:bg-blue-50"
+            >
+              <Pencil size={14} /> Edit
+            </button>
+          </div>
+
+          {/* Add Module Button */}
+          <div
+            className="border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition"
+            onClick={() => setShowModuleModal(true)}
+          >
+            <Plus size={24} className="text-gray-400 mb-2" />
+            <p className="text-gray-600">Add New Module</p>
+          </div>
+
+          {/* 📌 Modules List */}
+          <div className="mt-8">
+            <h3 className="text-xl font-semibold mb-4">Modules</h3>
+            {modules.length === 0 ? (
+              <p className="text-gray-500 text-sm">No modules yet.</p>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {modules.map((m) => (
+                  <div
+                    key={m.id}
+                    className="bg-white border rounded-xl shadow-sm p-5 flex flex-col justify-between hover:shadow-md transition"
+                  >
+                    {/* Header */}
+                    <div>
+                      <a
+                        href={`/elab-admin/coursed/modules/${m.id}`}
+                        className="block text-lg font-semibold text-blue-600 hover:underline"
+                      >
+                        {m.order_number}. {m.title}
+                      </a>
+                      <p className="text-sm text-gray-500 mt-1">
+                        📚 {m.questions.length} Questions
+                      </p>
+                    </div>
+
+                    {/* Footer (actions) */}
+                    <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
+                      <div className="flex flex-col">
+                        <span>⏳ {m.duration ? `${m.duration} hrs` : "—"}</span>
+                        <span>🎯 Pass Mark: {m.pass_mark ?? "N/A"}</span>
+                      </div>
+
+                      <div className="flex gap-2">
+                        {/* Edit button */}
+                        <button
+                          onClick={() => {
+                            setSelectedModule(m);
+                            setEditModuleOpen(true);
+                          }}
+                          className="px-3 py-1 text-xs border border-blue-600 text-blue-600 rounded-full hover:bg-blue-50"
+                        >
+                          Edit
+                        </button>
+
+                        {/* Delete button */}
+                        <button
+                          onClick={async () => {
+                            if (
+                              !confirm(
+                                "Are you sure you want to delete this module?"
+                              )
+                            )
+                              return;
+
+                            try {
+                              const res = await fetch(`${url}/modules/${m.id}`, {
+                                method: "DELETE",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                  Authorization: `Bearer ${newToken}`,
+                                },
+                              });
+
+                              if (res.ok) {
+                                setModules((prev) =>
+                                  prev.filter((mod) => mod.id !== m.id)
+                                );
+                              } else {
+                                console.error("Failed to delete module");
+                              }
+                            } catch (err) {
+                              console.error("Error deleting module:", err);
+                            }
+                          }}
+                          className="px-3 py-1 text-xs border border-red-600 text-red-600 rounded-full hover:bg-red-50"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Modals */}
+      <EditCourseModal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        course={editCourse}
+        onSave={handleEdit}
+      />
+
+      <CreateModuleModal
+        isOpen={showModuleModal}
+        onClose={() => setShowModuleModal(false)}
+        courseId={course.id}
+        onModuleCreated={handleModuleCreated}
+      />
+
+      <EditModuleModal
+        isOpen={editModuleOpen}
+        onClose={() => setEditModuleOpen(false)}
+        moduleData={selectedModule}
+        onSave={handleModuleUpdated}
+        token={newToken}
+        url={url}
+      />
     </div>
   );
 }
