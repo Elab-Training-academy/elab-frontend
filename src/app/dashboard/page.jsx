@@ -55,7 +55,7 @@ const Dashboard = () => {
 
         {/* Recently viewed course */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Recently viewed course</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Recently Enroll course</h2>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Course Card */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -99,6 +99,10 @@ const Dashboard = () => {
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                   <span className="text-sm text-gray-700">Time: 10:00-11:00 AM</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-sm text-gray-700">Meet link</span>
                 </div>
               </div>
             </div>

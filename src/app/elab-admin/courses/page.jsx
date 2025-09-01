@@ -30,17 +30,20 @@ export default function CoursesPage() {
     price: "",
   });
 
+
   // ✅ Ensure token
   useEffect(() => {
     if (!newToken && localStorage.getItem("token")) {
       setToken(localStorage.getItem("token"));
     }
+    
   }, [newToken, setToken]);
+
 
   // ✅ Fetch courses
   useEffect(() => {
     fetchAllCourses();
-  }, [fetchAllCourses]);
+  }, [fetchAllCourses]); 
 
   // ✅ Fetch categories
   useEffect(() => {

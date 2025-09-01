@@ -5,15 +5,15 @@ import { Mic, Paperclip, Send } from "lucide-react";
 const AIStudyCompanionPage = () => {
   return (
     <div className="p-6 flex flex-col h-full">
-      {/* Top Left Section */}
+
       <div className="flex flex-col items-start">
         <p className="text-[30px] font-semibold text-blue-600">AI Study Companion</p>
         <p className="text-gray-500 text-[14px]">Smart help when you need it, 24/7.</p>
       </div>
 
-      {/* Center Section */}
+
       <div className="flex flex-col items-center justify-center flex-1 mt-10">
-        <h1 className="text-[30px] font-bold mb-4">Let make medicine easier</h1>
+        <h1 className="text-[30px] font-bold mb-4">Let's make your professional exam easier</h1>
         <p className="text-gray-600 font-mono mb-6">
           What do you want to learn today?
         </p>

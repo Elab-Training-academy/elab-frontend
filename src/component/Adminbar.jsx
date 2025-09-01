@@ -39,7 +39,6 @@ const menuItems = [
   { name: "Subscription management", href: "/elab-admin/subscription", icon: CreditCard },
   { name: "CAT Testing", href: "/elab-admin/cat-testing", icon: PlayCircle },
   { name: "Case Studies", href: "/elab-admin/case-studies", icon: FileText },
-  { name: "Account Security Monitor", href: "/elab-admin/security", icon: Shield },
   { name: "Flashcards", href: "/elab-admin/flashcards", icon: Layers },
   { name: "Analytics", href: "/elab-admin/analytics", icon: BarChart },
 
@@ -48,7 +47,7 @@ const menuItems = [
     href: "/platform",
     icon: Sliders,
     subItems: [
-      { name: "General", href: "/platform/general", icon: Settings },
+      
       { name: "Features", href: "/platform/features", icon: ToggleLeft },
       { name: "Email", href: "/platform/email", icon: Mail },
       { name: "Security", href: "/platform/security", icon: Lock },

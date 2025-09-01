@@ -12,9 +12,9 @@ export default function Page() {
         </p>
       </div>
 
-      {/* Patient Cards */}
+
       <div className="flex flex-col lg:flex-row gap-6 w-full">
-        {/* Card 1 */}
+
         <div className="bg-white p-6 rounded-xl shadow-md w-full">
           <img
             src="https://via.placeholder.com/100"
