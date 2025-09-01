@@ -10,7 +10,7 @@ import Link from "next/link";
 export default function CoursesPage() {
   const [showModal, setShowModal] = useState(false);
   // const [editModalOpen, setEditModalOpen] = useState(false);
-  // const [editCourse, setEditCourse] = useState(null);
+  const [editCourse, setEditCourse] = useState(null);
 
   const fetchAllCourses = useAuthStore((state) => state.fetchAllCourses);
   const newToken = useAuthStore((state) => state.token);
@@ -142,61 +142,62 @@ export default function CoursesPage() {
 
       {loading && <p className="text-gray-500">Loading courses...</p>}
 
-      {!loading && courses.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <p className="text-gray-700 mb-2">
-            Looks like you haven't added any courses yet
-          </p>
+      {!loading && (!courses || courses.length === 0) ? (
+  <div className="flex flex-col items-center justify-center py-20 text-center">
+    <p className="text-gray-700 mb-2">
+      Looks like you haven't added any courses yet
+    </p>
+    <button
+      onClick={() => setShowModal(true)}
+      className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 shadow"
+    >
+      <Plus size={18} /> Add New Course
+    </button>
+  </div>
+) : (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {courses?.map((course) => (
+      <div
+        key={course.id}
+        className="border rounded-lg p-4 shadow hover:shadow-md transition"
+      >
+        <Link href={`/elab-admin/coursed/${course.id}`}>
+          <h3 className="font-semibold text-lg">{course.title}</h3>
+          <p className="text-sm text-gray-500">{course.description}</p>
+
+          <div className="mt-2 flex flex-wrap gap-2 items-center text-sm">
+            <span className="bg-gray-100 px-2 py-1 rounded">
+              {getCategoryName(course.category_id)}
+            </span>
+            <span className="font-medium">${course.price}</span>
+            <span className="font-medium">{course.status}</span>
+            <span className="font-medium">{course.duration} hrs</span>
+          </div>
+        </Link>
+
+        {/* Action Buttons */}
+        <div className="mt-4 flex justify-end gap-2">
           <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 shadow"
+            onClick={() => handleDelete(course.id)}
+            className="flex items-center gap-1 px-3 py-1 text-sm text-red-600 border border-red-600 rounded hover:bg-red-50"
           >
-            <Plus size={18} /> Add New Course
+            <Trash2 size={14} /> Delete
           </button>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {courses.map((course) => (
-            <div
-              key={course.id}
-              className="border rounded-lg p-4 shadow hover:shadow-md transition"
-            >
-              <Link href={`/elab-admin/coursed/${course.id}`}>
-                <h3 className="font-semibold text-lg">{course.title}</h3>
-                <p className="text-sm text-gray-500">{course.description}</p>
+      </div>
+    ))}
 
-                <div className="mt-2 flex flex-wrap gap-2 items-center text-sm">
-                  <span className="bg-gray-100 px-2 py-1 rounded">
-                    {getCategoryName(course.category_id)}
-                  </span>
-                  <span className="font-medium">${course.price}</span>
-                  <span className="font-medium">{course.status}</span>
-                  <span className="font-medium">{course.duration} hrs</span>
-                </div>
-              </Link>
+    {/* Add New Course Card */}
+    <div
+      className="border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition"
+      onClick={() => setShowModal(true)}
+    >
+      <Plus size={24} className="text-gray-400 mb-2" />
+      <p className="text-gray-600">Add New Course</p>
+    </div>
+  </div>
+)}
 
-              {/* Action Buttons */}
-              <div className="mt-4 flex justify-end gap-2">
-                <button
-                  onClick={() => handleDelete(course.id)}
-                  className="flex items-center gap-1 px-3 py-1 text-sm text-red-600 border border-red-600 rounded hover:bg-red-50"
-                >
-                  <Trash2 size={14} /> Delete
-                </button>
-              </div>
-            </div>
-          ))}
-
-          {/* Add New Course Card */}
-          <div
-            className="border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition"
-            onClick={() => setShowModal(true)}
-          >
-            <Plus size={24} className="text-gray-400 mb-2" />
-            <p className="text-gray-600">Add New Course</p>
-          </div>
-        </div>
-      )}
 
       {/* Create Modal */}
       <CreateCourseModal

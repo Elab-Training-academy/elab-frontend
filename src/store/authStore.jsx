@@ -2,10 +2,12 @@
 import { create } from "zustand";
 
 export const useAuthStore = create((set, get) => ({
+  courses: [],
   url: "https://elab-server-xg5r.onrender.com",
  token: localStorage.getItem("token") || null,
   setToken: (token) => set({ token}),
   clearToken: () => set({ token: null }),
+  setCourses: (courses) => set({ courses }),
 
   // Categories
   categories: [],
@@ -74,4 +76,35 @@ export const useAuthStore = create((set, get) => ({
       set({ loading: false });
     }
   },
+
+
+   fetchAllCourses: async () => {
+    const { url } = get();
+    set({ loading: true });
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${url}/courses`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        console.error("Failed to fetch courses", res.status);
+        set({ courses: [] });
+        return;
+      }
+
+      const data = await res.json();
+      set({ courses: data });
+    } catch (err) {
+      console.error("Error fetching courses:", err);
+      set({ courses: [] });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+
 }));
