@@ -51,14 +51,14 @@ export default function Sidebar({ onClose }) {
     <aside className="h-screen w-64 bg-white shadow-lg flex flex-col">
 
       <div className="p-4 flex items-center justify-between border-b border-gray-200">
-        <div className="flex items-center">
+        <a href="/" className="flex items-center">
           <Image 
             src={max} 
             alt="ELAB Logo" 
             className="w-[120px] h-auto" 
             priority
           />
-        </div>
+        </a>
         <button
           onClick={handleClose}
           className="lg:hidden p-1 rounded-md hover:bg-gray-100 transition-colors"
