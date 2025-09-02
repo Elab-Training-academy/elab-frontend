@@ -1,8 +1,11 @@
 "use client";
-import Link from "next/link";
 import React from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Pagination, Autoplay } from "swiper/modules";
+
+import "swiper/css";
+import "swiper/css/pagination";
 
 import star from "../image/star.png";
 import herodocto from "../image/herodoctor.png";
@@ -27,19 +30,32 @@ const Testimonials = () => {
       feedback:
         "ELAB Academy transformed my NCLEX preparation. The AI-powered study plans helped me focus on my weak areas, and I passed on my first attempt!",
     },
+    {
+      name: "James Miller",
+      role: "OET Candidate",
+      feedback:
+        "The English preparation course boosted my confidence. I scored higher than I expected on my OET exam.",
+    },
+    {
+      name: "Fatima Ali",
+      role: "MOH Licensed Nurse",
+      feedback:
+        "The practice questions and simulated exams were very close to the real test. I cleared MOH smoothly.",
+    },
+    {
+      name: "David Kim",
+      role: "IELTS Candidate",
+      feedback:
+        "The healthcare-specific English training was a game changer. I finally achieved my required IELTS band score.",
+    },
   ];
 
   return (
-    <section className="bg-[#F9FAFB] py-9 px-4 sm:px-6 md:px-12 lg:px-16">
+    <section className="bg-[#F9FAFB] py-12 px-4 sm:px-6 md:px-12 lg:px-16">
       {/* Top Section */}
       <div className="flex flex-col-reverse lg:flex-row justify-between items-center gap-8 mb-10">
         {/* Left Content */}
-        <motion.div
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.3 }}
-          className="text-center lg:text-left max-w-xl lg:max-w-2xl space-y-4"
-        >
+        <div className="text-center lg:text-left max-w-xl lg:max-w-2xl space-y-4">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold leading-snug text-gray-900">
             Join Thousands of{" "}
             <span className="text-blue-600">Successful Clinicians</span>
@@ -50,24 +66,14 @@ const Testimonials = () => {
             at every step—from registration to exam day, and even to your first day
             on the job abroad.
           </p>
-          
-          <motion.button
 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-md transition"
-          >
+          <button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-md transition">
             Enroll Now →
-          </motion.button>
-        </motion.div>
+          </button>
+        </div>
 
         {/* Right Image */}
-        <motion.div
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.3 }}
-          className="flex justify-center lg:justify-end w-full lg:w-auto"
-        >
+        <div className="flex justify-center lg:justify-end w-full lg:w-auto">
           <div className="relative w-[220px] sm:w-[260px] md:w-[300px] lg:w-[340px]">
             <Image
               src={herodocto}
@@ -75,49 +81,52 @@ const Testimonials = () => {
               className="w-full object-cover"
             />
           </div>
-        </motion.div>
+        </div>
       </div>
 
-      {/* Testimonials Grid */}
-      <motion.div
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.2 }}
+      {/* Swiper Testimonials */}
+      <Swiper
+        modules={[Pagination, Autoplay]}
+        spaceBetween={20}
+        slidesPerView={1}
+        pagination={{ clickable: true }}
+        autoplay={{ delay: 4000, disableOnInteraction: false }}
+        breakpoints={{
+          640: { slidesPerView: 1 },
+          768: { slidesPerView: 2 },
+          1024: { slidesPerView: 3 },
+        }}
+        className="pb-10"
       >
         {reviews.map((review, i) => (
-          <motion.div
-            key={i}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, amount: 0.3 }}
-            className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-lg transition"
-          >
-            {/* Star Rating */}
-            <div className="flex mb-3">
-              {Array(5)
-                .fill(0)
-                .map((_, index) => (
-                  <Image
-                    key={index}
-                    src={star}
-                    alt="star"
-                    className="w-5 h-5 mr-1"
-                  />
-                ))}
+          <SwiperSlide key={i}>
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-lg transition h-full">
+              {/* Star Rating */}
+              <div className="flex mb-3">
+                {Array(5)
+                  .fill(0)
+                  .map((_, index) => (
+                    <Image
+                      key={index}
+                      src={star}
+                      alt="star"
+                      className="w-5 h-5 mr-1"
+                    />
+                  ))}
+              </div>
+
+              {/* Feedback */}
+              <p className="text-gray-700 italic mb-4 leading-relaxed">
+                "{review.feedback}"
+              </p>
+
+              {/* Name & Role */}
+              <h4 className="font-semibold text-gray-900">{review.name}</h4>
+              <p className="text-gray-500 text-sm">{review.role}</p>
             </div>
-
-            {/* Feedback */}
-            <p className="text-gray-700 italic mb-4 leading-relaxed">
-              "{review.feedback}"
-            </p>
-
-            {/* Name & Role */}
-            <h4 className="font-semibold text-gray-900">{review.name}</h4>
-            <p className="text-gray-500 text-sm">{review.role}</p>
-          </motion.div>
+          </SwiperSlide>
         ))}
-      </motion.div>
+      </Swiper>
     </section>
   );
 };
