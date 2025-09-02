@@ -4,17 +4,22 @@ import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import max from '../../src/image/logo.png';
 import { FaLongArrowAltRight, FaUser, FaBars, FaTimes } from "react-icons/fa";
+import { useAuthStore } from '@/store/authStore';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); 
   const pathname = usePathname();
   const router = useRouter();
+
+  const { user, fetchUser } = useAuthStore();
+
+  useEffect(() => {
+    fetchUser?.(); // Load user info
+  }, [fetchUser]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
-
 
   const navItems = [
     { name: 'Home', path: '/' },
@@ -30,36 +35,26 @@ const Navbar = () => {
     return pathname.startsWith(path);
   };
 
-  // Handle navigation click
   const handleNavClick = (path, section = null) => {
     if (section) {
-      // If it's a section navigation, go to home first then scroll to section
       if (pathname !== '/') {
         router.push('/');
-        // Wait for navigation to complete before scrolling
         setTimeout(() => {
           const element = document.getElementById(section);
           if (element) {
-            element.scrollIntoView({ 
-              behavior: 'smooth',
-              block: 'start'
-            });
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
         }, 100);
       } else {
-        // Already on home page, just scroll to section
         const element = document.getElementById(section);
         if (element) {
-          element.scrollIntoView({ 
-            behavior: 'smooth',
-            block: 'start'
-          });
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       }
     } else {
       router.push(path);
     }
-    setIsMenuOpen(false); // Close mobile menu after navigation
+    setIsMenuOpen(false);
   };
 
   return (
@@ -96,19 +91,16 @@ const Navbar = () => {
             ))}
           </ul>
 
-          {/* Desktop Buttons (Conditional) */}
+          {/* Desktop Buttons */}
           <div className='hidden lg:flex items-center space-x-4'>
-            {isLoggedIn ? (
-              <>
-                <button className='flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-blue-600 transition-colors duration-200'>
-                  <FaUser className='text-sm' />
-                  Profile
-                </button>
-                <a href='/dashboard' className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors duration-200 font-semibold'>
-                  Get started
-                  <FaLongArrowAltRight className='text-sm' />
-                </a>
-              </>
+            {user ? (
+              <button
+                onClick={() => router.push('/dashboard')}
+                className='flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 font-semibold'
+              >
+                <FaUser className='text-sm' />
+                {user.full_name}
+              </button>
             ) : (
               <>
                 <a href='/login' className='px-4 py-2 text-gray-700 hover:text-blue-600 transition-colors duration-200'>
@@ -154,19 +146,16 @@ const Navbar = () => {
               ))}
             </ul>
 
-            {/* Mobile Buttons (Conditional) */}
+            {/* Mobile Buttons */}
             <div className='pt-4 space-y-3 border-t border-gray-200 flex flex-col items-center'>
-              {isLoggedIn ? (
-                <>
-                  <button className='flex items-center justify-center gap-2 w-full px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-white rounded-md transition-all duration-200'>
-                    <FaUser className='text-sm' />
-                    Profile
-                  </button>
-                  <a href='/dashboard' className='flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-colors duration-200 font-semibold'>
-                    Get Started
-                    <FaLongArrowAltRight className='text-sm' />
-                  </a>
-                </>
+              {user ? (
+                <button
+                  onClick={() => router.push('/dashboard')}
+                  className='flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-colors duration-200 font-semibold'
+                >
+                  <FaUser className='text-sm' />
+                  {user.full_name}
+                </button>
               ) : (
                 <>
                   <a href='/login' className='w-full text-center px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-white rounded-md transition-all duration-200'>

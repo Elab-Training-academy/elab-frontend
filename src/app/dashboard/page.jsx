@@ -1,7 +1,15 @@
-import React from 'react';
-import { Search, BookOpen, Users, TrendingUp, ChevronRight, Bell } from 'lucide-react';
+"use client";
+import React, { useEffect } from "react";
+import { Search, Users, TrendingUp, ChevronRight, Bell } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
 
 const Dashboard = () => {
+  const { user, fetchUser } = useAuthStore();
+
+  useEffect(() => {
+    fetchUser?.();
+  }, [fetchUser]);
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -22,9 +30,11 @@ const Dashboard = () => {
 
         {/* Welcome Section */}
         <div className="mb-8">
-          <p className="text-gray-600 mb-2"></p>
-          <h1 className="text-4xl font-bold text-gray-900 mb-6">Welcome to ELAB</h1>
-          
+          <p className="text-gray-600 mb-2">Welcome back,</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-6">
+            {user ? user.full_name : "Guest"}
+          </h1>
+
           {/* Stats Cards */}
           <div className="flex space-x-4 mb-8">
             <div className="bg-white rounded-xl border border-gray-200 p-6 flex-1">
@@ -38,7 +48,7 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-white rounded-xl border border-gray-200 p-6 flex-1">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -53,80 +63,55 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Recently viewed course */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Recently Enroll course</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Course Card */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <BookOpen className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">NCLEX-RN Complete Preparation</h3>
-                </div>
+        {/* Lesson Schedules & Study Groups */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Lesson Schedules */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Lesson Schedules</h3>
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <span className="text-sm text-gray-700">With: DR James Oluchi (Tutor)</span>
               </div>
-              
-              <div className="mb-4">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm text-gray-600">Progress</span>
-                  <span className="text-sm font-medium text-gray-900">50%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-blue-600 h-2 rounded-full" style={{ width: '50%' }}></div>
-                </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <span className="text-sm text-gray-700">Date: Mon, Aug 5</span>
               </div>
-              
-              <button className="w-full flex items-center justify-center space-x-2 bg-white border border-gray-200 rounded-lg py-2 px-4 hover:bg-gray-50 transition-colors">
-                <span className="text-gray-700">View Course</span>
-                <ChevronRight className="w-4 h-4 text-gray-500" />
-              </button>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <span className="text-sm text-gray-700">Time: 10:00-11:00 AM</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <span className="text-sm text-gray-700">Meet link</span>
+              </div>
             </div>
+          </div>
 
-            {/* Lesson Schedules */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Lesson Schedules</h3>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm text-gray-700">With: DR James Oluchi (Tutor)</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm text-gray-700">Date: Mon, Aug 5</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm text-gray-700">Time: 10:00-11:00 AM</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm text-gray-700">Meet link</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Study Groups */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Study Groups</h3>
-              <p className="text-sm text-gray-600 mb-4">Connect, learn, and succeed - join the group today!</p>
-              <button className="w-full flex items-center justify-center space-x-2 bg-white border border-gray-200 rounded-lg py-2 px-4 hover:bg-gray-50 transition-colors">
-                <span className="text-gray-700">Join Study Groups</span>
-                <ChevronRight className="w-4 h-4 text-gray-500" />
-              </button>
-            </div>
+          {/* Study Groups */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Study Groups</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Connect, learn, and succeed - join the group today!
+            </p>
+            <button className="w-full flex items-center justify-center space-x-2 bg-white border border-gray-200 rounded-lg py-2 px-4 hover:bg-gray-50 transition-colors">
+              <span className="text-gray-700">Join Study Groups</span>
+              <ChevronRight className="w-4 h-4 text-gray-500" />
+            </button>
           </div>
         </div>
 
         {/* Performance Insight & Exam Readiness */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
           {/* Performance Insight */}
           <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Performance Insight</h2>
             <div className="space-y-4">
               {[1, 2, 3, 4].map((item, index) => (
-                <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                >
                   <div>
                     <h4 className="font-medium text-gray-900">Physiological Integrity</h4>
                     <p className="text-sm text-gray-600">45 questions attempted</p>
@@ -145,7 +130,10 @@ const Dashboard = () => {
             <h3 className="text-lg font-semibold text-gray-900 mb-6">Exam Readiness</h3>
             <div className="flex items-center justify-center mb-6">
               <div className="relative w-32 h-32">
-                <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
+                <svg
+                  className="w-32 h-32 transform -rotate-90"
+                  viewBox="0 0 100 100"
+                >
                   <circle
                     cx="50"
                     cy="50"

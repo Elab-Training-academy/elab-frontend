@@ -53,7 +53,7 @@ const Footer = () => {
                   </a>
                 </li>
                 <li>
-                  <a href="#" className='text-gray-600 hover:text-indigo-600 transition-colors duration-200 block py-1'>
+                  <a href="/ExamPrep" className='text-gray-600 hover:text-indigo-600 transition-colors duration-200 block py-1'>
                     Course
                   </a>
                 </li>
