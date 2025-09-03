@@ -152,56 +152,43 @@
 
 
 
-
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuthStore } from "../../store/authStore";
 import Navbar from "@/component/Navbar";
-import EnrollModal from "@/component/EnrollModal"; // 👈 Import modal
+import EnrollModal from "@/component/EnrollModal";
 
 export default function ExamCategorySection() {
-  const newToken = useAuthStore((state) => state.token);
+  const token = useAuthStore((state) => state.token);
   const setToken = useAuthStore((state) => state.setToken);
   const courses = useAuthStore((state) => state.courses);
   const loading = useAuthStore((state) => state.loading);
-  const fetchAllCourses = useAuthStore((state) => state.fetchAllCourses);
+  const fetchIndexCourses = useAuthStore((state) => state.fetchIndexCourses);
 
-  // ✅ Modal state
+  // Modal state
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // ✅ Ensure token from localStorage
+  // Restore token if it exists
   useEffect(() => {
-    if (!newToken && localStorage.getItem("token")) {
-      setToken(localStorage.getItem("token"));
+    const savedToken = localStorage.getItem("token");
+    if (!token && savedToken) {
+      setToken(savedToken);
     }
-  }, [newToken, setToken]);
+  }, [token, setToken]);
 
-  // ✅ Fetch courses on mount
+  // Always fetch courses (no matter if token exists or not)
   useEffect(() => {
-    fetchAllCourses();
-  }, [fetchAllCourses]);
-
-  // ✅ Confirm enroll action
-  const handleConfirmEnroll = (course) => {
-    if (!course) return;
-
-    console.log("Enrolling in Course ID:", course.id);
-    console.log("Course Title:", course.title);
-
-    
-
-    alert(`Successfully enrolled in ${course.title} (ID: ${course_id})`);
-  };
+    fetchIndexCourses();
+  }, [fetchIndexCourses]);
 
   return (
     <>
       <Navbar />
       <section className="py-12 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-12 lg:px-16">
-          {/* Heading */}
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-3">
             Select Your Exam Category
           </h2>
@@ -209,6 +196,7 @@ export default function ExamCategorySection() {
             Choose from our comprehensive selection of exam preparation courses designed to help you succeed in your healthcare career.
           </p>
 
+          {/* States */}
           {loading ? (
             <p className="text-center text-gray-500">Loading courses...</p>
           ) : courses.length === 0 ? (
@@ -220,16 +208,16 @@ export default function ExamCategorySection() {
                   key={course.id}
                   className="w-full p-6 bg-blue-50 rounded-xl shadow-md hover:shadow-lg transition duration-200"
                 >
-                  <h3 className="font-[Inter] font-bold text-lg sm:text-xl text-[#2563EB] mb-2">
+                  <h3 className="font-bold text-lg sm:text-xl text-[#2563EB] mb-2">
                     {course.title}
                   </h3>
-                  <p className="font-[Geist] font-normal text-sm sm:text-base text-[#64748B] mb-4">
+                  <p className="text-sm sm:text-base text-[#64748B] mb-4">
                     {course.description}
                   </p>
 
                   <div className="flex justify-between items-center">
                     <Link
-                      href={`/courses/${course.id}`}
+                      href={`/index/courses/${course.id}`}
                       className="text-sm text-blue-600 font-medium hover:underline"
                     >
                       View Details
@@ -256,7 +244,6 @@ export default function ExamCategorySection() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         course={selectedCourse}
-        onConfirm={handleConfirmEnroll}
       />
     </>
   );

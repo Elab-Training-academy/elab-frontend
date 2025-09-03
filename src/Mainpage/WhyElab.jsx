@@ -214,7 +214,7 @@ const WhyElab = () => {
   }, []);
 
   return (
-    <section ref={sectionRef} className="bg-gradient-to-b from-white to-gray-50 py-9 px-6 md:px-9 lg:px-28 relative overflow-hidden">
+    <section id="why-us" ref={sectionRef} className="bg-gradient-to-b from-white to-gray-50 py-9 px-6 md:px-9 lg:px-28 relative overflow-hidden">
       {/* Background decorative elements */}
       <div className="parallax-bg absolute inset-0 pointer-events-none">
         <div className="absolute top-20 left-10 w-32 h-32 bg-blue-100 rounded-full opacity-20 blur-xl"></div>

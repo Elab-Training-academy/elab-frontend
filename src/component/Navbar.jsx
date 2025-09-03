@@ -3,11 +3,12 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import max from '../../src/image/logo.png';
-import { FaLongArrowAltRight, FaUser, FaBars, FaTimes } from "react-icons/fa";
+import { FaUser, FaBars, FaTimes } from "react-icons/fa";
 import { useAuthStore } from '@/store/authStore';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState(null);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -24,31 +25,60 @@ const Navbar = () => {
   const navItems = [
     { name: 'Home', path: '/' },
     { name: 'Exam prep', path: '/ExamPrep' },
-    { name: 'why us', path: '/', section: 'why-us' },
+    { name: 'Why us', path: '/', section: 'why-us' },
     { name: 'Contact us', path: '/contact' }
   ];
 
-  const isActive = (path) => {
-    if (path === '/') {
-      return pathname === '/';
+  // ✅ Watch sections with IntersectionObserver
+  useEffect(() => {
+    const sectionIds = ["why-us"];
+    const observers = [];
+
+    sectionIds.forEach((id) => {
+      const element = document.getElementById(id);
+      if (element) {
+        const observer = new IntersectionObserver(
+          ([entry]) => {
+            if (entry.isIntersecting) {
+              setActiveSection(id);
+            }
+          },
+          { threshold: 0.5 } // 50% visible to count as active
+        );
+        observer.observe(element);
+        observers.push(observer);
+      }
+    });
+
+    return () => {
+      observers.forEach((observer) => observer.disconnect());
+    };
+  }, []);
+
+  const isActive = (path, section = null) => {
+    if (section) {
+      return activeSection === section;
+    }
+    if (path === "/") {
+      return pathname === "/" && !activeSection; // only active if no section highlighted
     }
     return pathname.startsWith(path);
   };
 
   const handleNavClick = (path, section = null) => {
     if (section) {
-      if (pathname !== '/') {
-        router.push('/');
+      if (pathname !== "/") {
+        router.push("/");
         setTimeout(() => {
           const element = document.getElementById(section);
           if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            element.scrollIntoView({ behavior: "smooth", block: "start" });
           }
         }, 100);
       } else {
         const element = document.getElementById(section);
         if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
         }
       }
     } else {
@@ -80,7 +110,7 @@ const Navbar = () => {
                 <button
                   onClick={() => handleNavClick(item.path, item.section)}
                   className={`cursor-pointer transition-colors duration-200 relative ${
-                    isActive(item.path)
+                    isActive(item.path, item.section)
                       ? 'text-blue-600 after:content-[""] after:absolute after:bottom-[-8px] after:left-0 after:right-0 after:h-0.5 after:bg-blue-600 after:rounded-full'
                       : 'hover:text-blue-600'
                   }`}
@@ -135,7 +165,7 @@ const Navbar = () => {
                   <button
                     onClick={() => handleNavClick(item.path, item.section)}
                     className={`block w-full px-3 py-2 rounded-md cursor-pointer transition-all duration-200 ${
-                      isActive(item.path)
+                      isActive(item.path, item.section)
                         ? 'text-blue-600 bg-blue-50 border-l-4 border-blue-600'
                         : 'hover:text-blue-600 hover:bg-white'
                     }`}
@@ -153,7 +183,7 @@ const Navbar = () => {
                   onClick={() => router.push('/dashboard')}
                   className='flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-colors duration-200 font-semibold'
                 >
-                  <FaUser className='text-sm' />
+                  <FaUser  className='text-sm' />
                   {user.full_name}
                 </button>
               ) : (
