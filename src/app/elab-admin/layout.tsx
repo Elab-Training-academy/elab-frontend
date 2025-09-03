@@ -44,7 +44,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Desktop Sidebar - Always visible on lg+ screens */}
       <div className="hidden lg:block w-64 shrink-0">
         <div className="fixed top-0 left-0 h-full w-64">
-          <Admin /> {/* No onClose here */}
+          {/* <Admin /> No onClose here */}
         </div>
       </div>
 
