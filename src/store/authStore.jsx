@@ -78,7 +78,6 @@ export const useAuthStore = create((set, get) => ({
   },
 
 
-
    fetchAllCourses: async () => {
     const { url } = get();
     set({ loading: true });
@@ -106,36 +105,6 @@ export const useAuthStore = create((set, get) => ({
       set({ loading: false });
     }
   },
-
-
-  fetchUser: async () => {
-  const { url } = get();
-  set({ loading: true });
-
-  try {
-    const token = localStorage.getItem("token");
-    const res = await fetch(`${url}/users/profile`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!res.ok) {
-      console.error("Failed to fetch user", res.status);
-      set({ user: null });
-      return;
-    }
-
-    const data = await res.json();
-    set({ user: data }); // 👈 this sets the user
-  } catch (err) {
-    console.error("Error fetching user:", err);
-    set({ user: null });
-  } finally {
-    set({ loading: false });
-  }
-},
-
 
 
 }));
