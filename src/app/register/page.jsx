@@ -32,7 +32,12 @@ const handleCreateAccount = async (e) => {
     return;
   }
 
-  if (password !== confirmPassword)
+  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+  if (!passwordRegex.test(password)) {
+    toast.error("Password must be at least 8 characters long, include a letter, a number, and a special character.");
+    return;
+  }
 
   setCreate(true);
 

@@ -57,6 +57,21 @@ const menuItems = [
   },
 ];
 
+ const handleLogout = () => {
+  localStorage.clear();
+  sessionStorage.clear();
+
+  // clear cookies
+  document.cookie.split(";").forEach((c) => {
+    document.cookie = c
+      .replace(/^ +/, "")
+      .replace(/=.*/, `=;expires=${new Date(0).toUTCString()};path=/`);
+  });
+
+  // Force a clean navigation
+  window.location.href = "/login";
+};
+
 export default function Sidebar({ onClose }) {
   const pathname = usePathname();
   const [openMenu, setOpenMenu] = useState(null);
@@ -180,7 +195,7 @@ export default function Sidebar({ onClose }) {
         </Link>
         <button
           className="w-full flex items-center gap-3 px-4 py-3 text-red-500 font-medium hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
-          onClick={() => console.log("Logout clicked")}
+          onClick={handleLogout}
         >
           <LogOut size={18} />
           <span className="text-sm">Logout</span>

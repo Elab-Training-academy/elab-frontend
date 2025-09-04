@@ -1,10 +1,19 @@
 "use client";
 import { useState, useEffect } from "react";
 import Admin from "@/component/Adminbar";
+import { useRouter } from "next/navigation";
 import { Menu } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token"); // or from your authStore
+    if (!token) {
+      router.replace("/login"); // 🚀 Redirect if no token
+    }
+  }, [router]);
 
   // Close sidebar when screen size changes to desktop
   useEffect(() => {
