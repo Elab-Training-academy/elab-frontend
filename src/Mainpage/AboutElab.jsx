@@ -116,6 +116,7 @@ const AboutElab = () => {
 
   return (
     <section
+    id="about"
       ref={sectionRef}
       className="text-black px-6 md:px-20 lg:px-16 py-5 bg-white overflow-hidden"
     >

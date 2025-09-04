@@ -48,7 +48,7 @@ const Footer = () => {
               <h1 className='font-bold text-xl text-gray-800'>Quick Links</h1>
               <ul className='space-y-3'>
                 <li>
-                  <a href="#" className='text-gray-600 hover:text-indigo-600 transition-colors duration-200 block py-1'>
+                  <a href="#about" className='text-gray-600 hover:text-indigo-600 transition-colors duration-200 block py-1'>
                     About us
                   </a>
                 </li>
@@ -57,7 +57,7 @@ const Footer = () => {
                     Course
                   </a>
                 </li>
-                <li>
+                {/* <li>
                   <a href="#" className='text-gray-600 hover:text-indigo-600 transition-colors duration-200 block py-1'>
                     Pricing
                   </a>
@@ -66,7 +66,7 @@ const Footer = () => {
                   <a href="#" className='text-gray-600 hover:text-indigo-600 transition-colors duration-200 block py-1'>
                     Blog
                   </a>
-                </li>
+                </li> */}
                 <li>
                   <a href="/contact" className='text-gray-600 hover:text-indigo-600 transition-colors duration-200 block py-1'>
                     Contact
