@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import max from '../../src/image/logo.png';
-import { FaUser, FaBars, FaTimes } from "react-icons/fa";
+import { FaBars, FaTimes } from "react-icons/fa";
 import { useAuthStore } from '@/store/authStore';
 
 const Navbar = () => {
@@ -12,11 +12,23 @@ const Navbar = () => {
   const pathname = usePathname();
   const router = useRouter();
 
-  const { user, fetchUser } = useAuthStore();
+  // ✅ Fixed: Access store values directly without destructuring
+  const profile = useAuthStore((state) => state.profile);
+  const fetchProfile = useAuthStore((state) => state.fetchProfile);
+  const loadingProfile = useAuthStore((state) => state.loadingProfile);
 
   useEffect(() => {
-    fetchUser?.(); // Load user info
-  }, [fetchUser]);
+    // ✅ Fixed: Direct function call without optional chaining
+    if (fetchProfile) {
+      fetchProfile();
+    }
+  }, [fetchProfile]);
+
+  // ✅ Added: Debug logging to see what's in the profile
+  useEffect(() => {
+    console.log('Navbar - Current profile:', profile);
+    console.log('Navbar - Loading profile:', loadingProfile);
+  }, [profile, loadingProfile]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -29,7 +41,7 @@ const Navbar = () => {
     { name: 'Contact us', path: '/contact' }
   ];
 
-  // ✅ Watch sections with IntersectionObserver
+  // IntersectionObserver to highlight active section
   useEffect(() => {
     const sectionIds = ["why-us"];
     const observers = [];
@@ -39,29 +51,21 @@ const Navbar = () => {
       if (element) {
         const observer = new IntersectionObserver(
           ([entry]) => {
-            if (entry.isIntersecting) {
-              setActiveSection(id);
-            }
+            if (entry.isIntersecting) setActiveSection(id);
           },
-          { threshold: 0.5 } // 50% visible to count as active
+          { threshold: 0.5 }
         );
         observer.observe(element);
         observers.push(observer);
       }
     });
 
-    return () => {
-      observers.forEach((observer) => observer.disconnect());
-    };
+    return () => observers.forEach((observer) => observer.disconnect());
   }, []);
 
   const isActive = (path, section = null) => {
-    if (section) {
-      return activeSection === section;
-    }
-    if (path === "/") {
-      return pathname === "/" && !activeSection; // only active if no section highlighted
-    }
+    if (section) return activeSection === section;
+    if (path === "/") return pathname === "/" && !activeSection;
     return pathname.startsWith(path);
   };
 
@@ -71,20 +75,39 @@ const Navbar = () => {
         router.push("/");
         setTimeout(() => {
           const element = document.getElementById(section);
-          if (element) {
-            element.scrollIntoView({ behavior: "smooth", block: "start" });
-          }
+          if (element) element.scrollIntoView({ behavior: "smooth", block: "start" });
         }, 100);
       } else {
         const element = document.getElementById(section);
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
+        if (element) element.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     } else {
       router.push(path);
     }
     setIsMenuOpen(false);
+  };
+
+  // ✅ Helper function to get display name
+  const getDisplayName = () => {
+    if (!profile) return '';
+    
+    // Try different possible field names from your API
+    return profile.full_name || 
+           profile.firstName || 
+           profile.first_name || 
+           `${profile.firstName || ''} ${profile.lastName || ''}`.trim() ||
+           profile.name ||
+           'User';
+  };
+
+  // ✅ Helper function to get profile picture
+  const getProfilePicture = () => {
+    if (!profile) return '/default-avatar.png';
+    
+    return profile.profile_picture || 
+           profile.profilePicture || 
+           profile.avatar || 
+           '/default-avatar.png';
   };
 
   return (
@@ -123,13 +146,27 @@ const Navbar = () => {
 
           {/* Desktop Buttons */}
           <div className='hidden lg:flex items-center space-x-4'>
-            {user ? (
+            {/* ✅ Added loading state */}
+            {loadingProfile ? (
+              <div className='flex items-center gap-2 px-4 py-2'>
+                <div className='w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin'></div>
+                <span className='text-gray-600'>Loading...</span>
+              </div>
+            ) : profile ? (
               <button
                 onClick={() => router.push('/dashboard')}
-                className='flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 font-semibold'
+                className='flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 font-semibold'
               >
-                <FaUser className='text-sm' />
-                {user.full_name}
+                {/* Profile picture */}
+                <img
+                  src={getProfilePicture()}
+                  alt="Profile"
+                  className='w-8 h-8 rounded-full object-cover'
+                  onError={(e) => {
+                    e.target.src = '/default-avatar.png';
+                  }}
+                />
+                {getDisplayName()}
               </button>
             ) : (
               <>
@@ -178,13 +215,25 @@ const Navbar = () => {
 
             {/* Mobile Buttons */}
             <div className='pt-4 space-y-3 border-t border-gray-200 flex flex-col items-center'>
-              {user ? (
+              {loadingProfile ? (
+                <div className='flex items-center gap-2 w-full justify-center py-2'>
+                  <div className='w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin'></div>
+                  <span className='text-gray-600'>Loading...</span>
+                </div>
+              ) : profile ? (
                 <button
                   onClick={() => router.push('/dashboard')}
                   className='flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-colors duration-200 font-semibold'
                 >
-                  <FaUser  className='text-sm' />
-                  {user.full_name}
+                  <img
+                    src={getProfilePicture()}
+                    alt="Profile"
+                    className='w-6 h-6 rounded-full object-cover'
+                    onError={(e) => {
+                      e.target.src = '/default-avatar.png';
+                    }}
+                  />
+                  {getDisplayName()}
                 </button>
               ) : (
                 <>

@@ -9,10 +9,9 @@ export default function EnrollModal({ isOpen, onClose, course }) {
 
   const handleEnroll = async () => {
     try {
-      const success = await createOrder(course.id);
-      if (success) {
-        alert(`Enrolled in ${course.title} successfully!`);
-        onClose();
+      const order = await createOrder(course.id); // expects { checkout_url: "..." }
+      if (order && order.checkout_url) {
+        window.location.href = order.checkout_url;
       } else {
         alert("Failed to enroll. Please try again.");
       }
@@ -24,8 +23,13 @@ export default function EnrollModal({ isOpen, onClose, course }) {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white p-6 rounded-xl shadow-lg w-96">
-        <h2 className="text-lg font-bold mb-4">Enroll in {course.title}</h2>
-        <p className="mb-4 text-gray-600">{course.description}</p>
+        <h2 className="text-xl font-bold mb-2">{course.title}</h2>
+        <p className="text-gray-600 mb-4">{course.description}</p>
+
+        <div className="mb-4">
+          <p><span className="font-semibold">Duration:</span> {course.duration}</p>
+          <p><span className="font-semibold">Price:</span> ${course.price}</p>
+        </div>
 
         <div className="flex justify-end gap-3">
           <button
