@@ -17,7 +17,7 @@ const Footer = () => {
             
      
             <div className='space-y-6 justify-center'>
-              <div class="flex-shrink-0 w-full flex-col flex items-center">
+              <div className="flex-shrink-0 w-full flex-col flex items-center">
                 <Image
                       src={max}
                       alt="Description of the image"
