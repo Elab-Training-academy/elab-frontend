@@ -207,7 +207,7 @@ fetchIndexCourses: async () => {
   set({ loading: true });
 
   try {
-    const res = await fetch(`${url}/index/courses`);
+    const res = await fetch(`${url}/courses/index/courses`);
 
     if (!res.ok) {
       console.error("Failed to fetch index courses", res.status);
@@ -259,14 +259,18 @@ fetchProfile: async () => {
 
 
   //  updateProfile
-  updateProfile: async (updatedData) => {
+  
+ // Updated Zustand functions for better error handling and consistency
+
+updateProfile: async (updatedData) => {
   const { url } = get();
+  set({ loadingProfile: true }); // ✅ Add loading state
 
   try {
     const token = localStorage.getItem("token");
     
-    console.log("🔄 Updating profile with data:", updatedData); // Debug log
-    console.log("🌐 Making request to:", `${url}/users/profile`); // Debug log
+    console.log("🔄 Updating profile with data:", updatedData);
+    console.log("🌐 Making request to:", `${url}/users/profile`);
     
     const res = await fetch(`${url}/users/profile`, {
       method: "PUT",
@@ -277,23 +281,114 @@ fetchProfile: async () => {
       body: JSON.stringify(updatedData),
     });
 
-    console.log("📡 Response status:", res.status); // Debug log
+    console.log("📡 Response status:", res.status);
 
     if (!res.ok) {
       const errorText = await res.text();
-      console.error(" Failed to update profile", res.status, errorText);
-      return false; // ✅ Return false instead of undefined
+      console.error("❌ Failed to update profile", res.status, errorText);
+      return false;
     }
 
     const data = await res.json();
-    console.log("✅ Profile updated successfully:", data); // Debug log
+    console.log("✅ Profile updated successfully:", data);
     
+    // ✅ Update the profile in store immediately
     set({ profile: data });
-    return true; // ✅ Return true to indicate success
+    return true;
     
   } catch (err) {
-    console.error(" Error updating profile:", err);
-    return false; // ✅ Return false on error
+    console.error("❌ Error updating profile:", err);
+    return false;
+  } finally {
+    set({ loadingProfile: false }); // ✅ Always stop loading
+  }
+},
+
+// ✅ Add a fetchProfile function if you don't have one
+fetchProfile: async () => {
+  const { url } = get();
+  set({ loadingProfile: true });
+
+  try {
+    const token = localStorage.getItem("token");
+    
+    if (!token) {
+      console.log("No token found, user not authenticated");
+      set({ profile: null, loadingProfile: false });
+      return;
+    }
+
+    console.log("🔄 Fetching profile from:", `${url}/users/profile`);
+    
+    const res = await fetch(`${url}/users/profile`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log("📡 Fetch profile response status:", res.status);
+
+    if (!res.ok) {
+      if (res.status === 401) {
+        // Token might be expired
+        localStorage.removeItem("token");
+        set({ profile: null, isAuthenticated: false });
+      }
+      const errorText = await res.text();
+      console.error("❌ Failed to fetch profile", res.status, errorText);
+      return;
+    }
+
+    const data = await res.json();
+    console.log("✅ Profile fetched successfully:", data);
+    
+    set({ profile: data, isAuthenticated: true });
+    
+  } catch (err) {
+    console.error("❌ Error fetching profile:", err);
+    set({ profile: null });
+  } finally {
+    set({ loadingProfile: false });
+  }
+},
+
+setProfilePicture: async (file) => {
+  const { url } = get();
+  set({ loadingProfile: true });
+
+  try {
+    const token = localStorage.getItem("token");
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch(`${url}/users/profile-picture`, { // ✅ Fixed endpoint
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!res.ok) {
+      console.error("Failed to update profile picture", res.status);
+      return null;
+    }
+
+    const data = await res.json();
+
+    // ✅ Update the profile in store
+    set((state) => ({
+      profile: { ...state.profile, profile_picture: data.profile_picture },
+    }));
+
+    return data.profile_picture;
+  } catch (err) {
+    console.error("Error updating profile picture:", err);
+    return null;
+  } finally {
+    set({ loadingProfile: false });
   }
 },
 
