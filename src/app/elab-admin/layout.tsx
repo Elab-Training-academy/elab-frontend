@@ -7,6 +7,8 @@ import { Menu } from "lucide-react";
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
+  const [allowed, setAllowed] = useState(false);
+
 
   useEffect(() => {
     const token = localStorage.getItem("token"); // or from your authStore
@@ -39,6 +41,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+
+    if (!token) {
+      router.replace("/login");
+    } else if (role === "staff" || role === "super-admin") {
+      setAllowed(true); // ✅ allow staff & super-admin
+    } else {
+      router.replace("/dashboard"); // 👈 kick normal users out
+    }
+  }, [router]);
+
+  if (!allowed) return null; // while checking
+
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Mobile toggle button */}
@@ -52,8 +70,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Desktop Sidebar - Always visible on lg+ screens */}
       <div className="hidden lg:block w-64 shrink-0">
-        <div className="fixed top-0 left-0 h-full w-64">
+        <div className="fixed top-0 left-0 h-full w-74">
           {/* <Admin /> No onClose here */}
+          <Admin onClose={() => setIsOpen(false)} />
         </div>
       </div>
 

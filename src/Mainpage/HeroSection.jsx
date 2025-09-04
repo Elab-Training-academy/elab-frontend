@@ -12,7 +12,7 @@ const HeroSection = () => {
         <h1 className="text-xl sm:text-2xl md:text-5xl lg:text-5xl font-bold text-black leading-snug">
           Master Your Medical Licensing Exams with Confidence
         </h1>
-        <p className="text-gray-700 text-base sm:text-lg md:text-lg leading-relaxed">
+        <p className="text-gray-700 text-base sm:text-[16px] md:text-lg leading-relaxed">
           Comprehensive preparation for NCLEX-RN, OMSB, DHA, Saudi Board, and
           more. Join the thousands who've succeeded with our proven
           methodology.

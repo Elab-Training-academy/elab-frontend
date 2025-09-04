@@ -23,36 +23,81 @@ const LoginPage = () => {
 
 
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setSignin(true);
+
+  //   try {
+  //     const res = await fetch(`${url}/auth/login`, {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ email, password }),
+  //     });
+
+  //     const data = await res.json();
+
+  //     if (res.ok) {
+  //       toast.success('Login successful!');
+  //       localStorage.setItem("token", data.access_token);
+  //       if (setToken) setToken(data.access_token);
+
+  //       // redirect user to dashboard
+  //       router.push('/dashboard');
+  //     } else {
+  //       toast.error(data.detail || 'Login failed!');
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //     toast.error('No Internet Connection!');
+  //   } finally {
+  //     setSignin(false);
+  //   }
+  // };
+
+
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSignin(true);
+  e.preventDefault();
+  setSignin(true);
 
-    try {
-      const res = await fetch(`${url}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
+  try {
+    const res = await fetch(`${url}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (res.ok) {
-        toast.success('Login successful!');
-        localStorage.setItem("token", data.access_token);
-        if (setToken) setToken(data.access_token);
+    if (res.ok) {
+      toast.success("Login successful!");
 
-        // redirect user to dashboard
-        router.push('/dashboard');
+      // Save token + role
+      localStorage.setItem("token", data.access_token);
+      localStorage.setItem("role", data.role); // 👈 store role too
+
+      if (setToken) setToken(data.access_token);
+
+      // Redirect based on role
+      if (data.role === "user") {
+        router.push("/dashboard");
+      } else if (data.role === "staff") {
+        router.push("/elab-admin"); // staff limited dashboard
+      } else if (data.role === "super-admin") {
+        router.push("/elab-admin"); // super-admin full dashboard
       } else {
-        toast.error(data.detail || 'Login failed!');
+        toast.error("Unknown role! Contact support.");
       }
-    } catch (error) {
-      console.error(error);
-      toast.error('No Internet Connection!');
-    } finally {
-      setSignin(false);
+    } else {
+      toast.error(data.detail || "Login failed!");
     }
-  };
+  } catch (error) {
+    console.error(error);
+    toast.error("No Internet Connection!");
+  } finally {
+    setSignin(false);
+  }
+};
+
 
   return (
     <main className="flex items-center justify-center min-h-screen bg-white px-4 sm:px-6 lg:px-8">

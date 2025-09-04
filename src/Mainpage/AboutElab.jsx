@@ -121,15 +121,15 @@ const AboutElab = () => {
       className="text-black px-6 md:px-20 lg:px-16 py-5 bg-white overflow-hidden"
     >
       {/* Header */}
-      <div ref={headerRef} className="flex flex-col items-center w-full mx-auto text-center">
-        <h2 className="text-2xl md:text-3xl font-semibold mb-1">
+      <div ref={headerRef} className="flex flex-col items-center w-full mx-auto text-center mt-5">
+        <h2 className="text-2xl md:text-3xl font-semibold">
           About{" "}
           <span className="text-blue-500 relative">
             ELAB Academy
             <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-blue-400 to-blue-600 transform scale-x-0 transition-transform duration-500"></span>
           </span>
         </h2>
-        <p className="text-black text-lg my-5">
+        <p className="text-black text-[1rem] my-4">
           Empowering Healthcare Professionals to Succeed — Wherever They Are.
         </p>
       </div>
