@@ -7,15 +7,13 @@ import AboutElab from '../Mainpage/AboutElab'
 
 const Home = () => {
   return (
-    <div>
+    <>
         <HeroSection />
         <AboutElab />
         <Firsthero />
          <WhyElab />
-        <Testimonial />
-        
-        
-    </div>
+        <Testimonial />      
+    </>
   )
 }
 

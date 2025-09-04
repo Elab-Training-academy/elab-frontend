@@ -6,9 +6,9 @@ import doctopn from "../image/doctor.png";
 
 const HeroSection = () => {
   return (
-    <section className="flex justify-between flex-col-reverse lg:flex-row items-center px-6 md:px-12 lg:px-16 py-7 bg-white">
+    <section className="flex justify-between flex-col-reverse lg:flex-row items-center px-6 md:px-12 lg:px-16 py-7 bg-white max-h-[85vh]">
       {/* Left Content */}
-      <div className="space-y-6 text-center lg:text-left max-w-2xl">
+      <div className="space-y-6 text-center lg:text-left max-w-2xl px-5">
         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-bold text-black leading-snug">
           Master Your Medical <br /> Licensing Exams <br /> with Confidence
         </h1>
@@ -21,7 +21,7 @@ const HeroSection = () => {
 
       {/* Right Content */}
       <div className="mb-10 lg:mb-0 flex justify-center lg:justify-end w-fit lg:w-auto">
-        <div className="relative w-[240px] h-[240px] sm:w-[320px] sm:h-[320px] md:w-[400px] md:h-[400px] lg:w-[494px] lg:h-[494px]">
+        <div className="relative">
           <Image
             src={doctopn}
             alt="Clinician"
