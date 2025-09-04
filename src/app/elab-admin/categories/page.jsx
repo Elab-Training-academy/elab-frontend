@@ -1,7 +1,10 @@
+
+
 // "use client";
 // import { useEffect, useState } from "react";
-// import { Plus, Filter } from "lucide-react";
+// import { Plus, Filter, Trash2, Pencil } from "lucide-react";
 // import CreateCategoryModal from "../../../component/CreateCategoryModal";
+// import EditCategoryModal from "../../../component/EditCategoryModal"
 // import { useAuthStore } from "@/store/authStore";
 // import Link from "next/link";
 
@@ -13,6 +16,12 @@
 //   const categories = useAuthStore((state) => state.categories);
 //   const setCategories = useAuthStore((state) => state.setCategories);
 //   const loading = useAuthStore((state) => state.loading);
+//   const url = useAuthStore(state => state.url);
+//   const [editModalOpen, setEditModalOpen] = useState(false);
+//   const [editCategory, setEditCategory] = useState(null);
+
+
+//   // const getToken = localStorage.getItem("token")
 
 //   const [categoryData, setCategoryData] = useState({
 //     name: "",
@@ -25,29 +34,79 @@
 //       setToken(localStorage.getItem("token"));
 //     }
 //   }, [newToken, setToken]);
-//   console.log(newToken);
-  
 
 //   // Fetch categories
 //   useEffect(() => {
 //     fetchAllCategories();
-//     console.log(fetchAllCategories);
-    
 //   }, [fetchAllCategories]);
 
 //   const handleSubmit = (categoryData) => {
-//     console.log("Category data:", categoryData);
-
 //     // Add new category locally (optimistic update)
 //     setCategories([...categories, categoryData]);
-
 //     setShowModal(false);
-
-//     setCategoryData({
-//       name: "",
-//       description: "",
-//     });
+//     setCategoryData({ name: "", description: "" });
 //   };
+
+// const handleDelete = async (id) => {
+//   if (!confirm("Are you sure you want to delete this category?")) return;
+
+//   try {
+//     const res = await fetch(`${url}/categories/${id}`, {
+//       method: "DELETE",
+//       headers: {
+//         Authorization: `Bearer ${newToken}`,
+//       },
+//     });
+
+//     if (res.ok) {
+//       let data = null;
+//       const text = await res.text(); // check if there is body
+//       if (text) {
+//         data = JSON.parse(text);
+//       }
+//       console.log("Deleted:", data);
+
+//       // Remove deleted category immediately without refresh
+//       setCategories(categories.filter((cat) => cat.id !== id));
+//     } else {
+//       const errorText = await res.text();
+//       console.error("Failed to delete category:", res.status, errorText);
+//     }
+//   } catch (error) {
+//     console.error("Error deleting category:", error);
+//   }
+// };
+// const handleEdit = async (id, newDescription) => {
+//   try {
+//     const res = await fetch(`${url}/categories/${id}`, {
+//       method: "PUT",
+//       headers: {
+//         "Content-Type": "application/json",
+//         Authorization: `Bearer ${newToken}`,
+//       },
+//       body: JSON.stringify({ description: newDescription }), // ✅ send only description
+//     });
+
+//     if (res.ok) {
+//       const updatedCategory = await res.json();
+//       console.log("Edited:", updatedCategory);
+
+//       // Update the category in state
+//       setCategories(
+//         categories.map((cat) =>
+//           cat.id === id ? { ...cat, description: updatedCategory.description } : cat
+//         )
+//       );
+//     } else {
+//       const errorText = await res.text();
+//       console.error("Failed to edit category:", res.status, errorText);
+//     }
+//   } catch (error) {
+//     console.error("Error editing category:", error);
+//   }
+// };
+
+
 
 //   return (
 //     <div className="flex-1 p-6">
@@ -93,24 +152,47 @@
 //       ) : (
 //         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 //           {categories.map((category, index) => (
-//           <Link href={`/elab-admin/category/${category.id}`} key={index}>
-//             <div className="border rounded-lg p-4 shadow hover:shadow-md transition cursor-pointer">
-//               <h3 className="font-semibold text-lg">{category.name}</h3>
-//               <p className="text-sm text-gray-500">{category.description}</p>
-//               <div className="mt-2 flex justify-between items-center">
-//                 <span className="text-xs text-gray-500">
-//                   Created: {new Date(category.created_at).toLocaleDateString()}
-//                 </span>
-//                 <span className="text-xs text-gray-500">
-//                   Updated: {new Date(category.updated_at).toLocaleDateString()}
-//                 </span>
-//               </div>
+//           <div key={index} className="border rounded-lg p-4 shadow">
+//             {/* Make name clickable */}
+//             <Link href={`/elab-admin/category/${category.id}`}>
+//               <h3 className="font-semibold text-lg text-blue-600 hover:underline cursor-pointer">
+//                 {category.name}
+//               </h3>
+
+//             <p className="text-sm text-gray-500">{category.description}</p>
+
+//             <div className="mt-2 flex justify-between items-center">
+//               <span className="text-xs text-gray-500">
+//                 Created: {new Date(category.created_at).toLocaleDateString()}
+//               </span>
+//               <span className="text-xs text-gray-500">
+//                 Updated: {new Date(category.updated_at).toLocaleDateString()}
+//               </span>
 //             </div>
 //           </Link>
 
-            
+//             {/* Action Buttons */}
+//             <div className="mt-4 flex justify-end gap-2">
+//               <button
+//                 onClick={() => {
+//                   setEditCategory(category);
+//                   setEditModalOpen(true);
+//                 }}
+//                 className="flex items-center gap-1 px-3 py-1 text-sm text-blue-600 border border-blue-600 rounded hover:bg-blue-50"
+//                 >
+//                 <Pencil size={14} /> Edit
+//               </button>
 
+//               <button
+//                 onClick={() => handleDelete(category.id)}
+//                 className="flex items-center gap-1 px-3 py-1 text-sm text-red-600 border border-red-600 rounded hover:bg-red-50"
+//                 >
+//                 <Trash2 size={14} /> Delete
+//               </button>
+//             </div>
+//           </div>
 //         ))}
+
 
 //           {/* Add New Category Card */}
 //           <div
@@ -131,16 +213,25 @@
 //         categoryData={categoryData}
 //         setCategoryData={setCategoryData}
 //       />
+
+//       <EditCategoryModal
+//       isOpen={editModalOpen}
+//       onClose={() => setEditModalOpen(false)}
+//       category={editCategory}
+//       onSave={handleEdit}
+//     />
+
 //     </div>
 //   );
 // }
+
 
 
 "use client";
 import { useEffect, useState } from "react";
 import { Plus, Filter, Trash2, Pencil } from "lucide-react";
 import CreateCategoryModal from "../../../component/CreateCategoryModal";
-import EditCategoryModal from "../../../component/EditCategoryModal"
+import EditCategoryModal from "../../../component/EditCategoryModal";
 import { useAuthStore } from "@/store/authStore";
 import Link from "next/link";
 
@@ -152,97 +243,86 @@ export default function CategoriesPage() {
   const categories = useAuthStore((state) => state.categories);
   const setCategories = useAuthStore((state) => state.setCategories);
   const loading = useAuthStore((state) => state.loading);
-  const url = useAuthStore(state => state.url);
+  const url = useAuthStore((state) => state.url);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editCategory, setEditCategory] = useState(null);
-
-
-  const getToken = localStorage.getItem("token")
 
   const [categoryData, setCategoryData] = useState({
     name: "",
     description: "",
   });
 
-  // Ensure token from localStorage
+  // ✅ Only access localStorage in browser
   useEffect(() => {
-    if (!newToken && localStorage.getItem("token")) {
-      setToken(localStorage.getItem("token"));
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      if (!newToken && token) {
+        setToken(token);
+      }
     }
   }, [newToken, setToken]);
 
-  // Fetch categories
+  // Fetch categories after token is set
   useEffect(() => {
-    fetchAllCategories();
-  }, [fetchAllCategories]);
+    if (newToken) {
+      fetchAllCategories();
+    }
+  }, [newToken, fetchAllCategories]);
 
   const handleSubmit = (categoryData) => {
-    // Add new category locally (optimistic update)
     setCategories([...categories, categoryData]);
     setShowModal(false);
     setCategoryData({ name: "", description: "" });
   };
 
-const handleDelete = async (id) => {
-  if (!confirm("Are you sure you want to delete this category?")) return;
+  const handleDelete = async (id) => {
+    if (!confirm("Are you sure you want to delete this category?")) return;
 
-  try {
-    const res = await fetch(`${url}/categories/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${getToken}`,
-      },
-    });
+    try {
+      const res = await fetch(`${url}/categories/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${newToken}`,
+        },
+      });
 
-    if (res.ok) {
-      let data = null;
-      const text = await res.text(); // check if there is body
-      if (text) {
-        data = JSON.parse(text);
+      if (res.ok) {
+        setCategories(categories.filter((cat) => cat.id !== id));
+      } else {
+        const errorText = await res.text();
+        console.error("Failed to delete category:", res.status, errorText);
       }
-      console.log("Deleted:", data);
-
-      // Remove deleted category immediately without refresh
-      setCategories(categories.filter((cat) => cat.id !== id));
-    } else {
-      const errorText = await res.text();
-      console.error("Failed to delete category:", res.status, errorText);
+    } catch (error) {
+      console.error("Error deleting category:", error);
     }
-  } catch (error) {
-    console.error("Error deleting category:", error);
-  }
-};
-const handleEdit = async (id, newDescription) => {
-  try {
-    const res = await fetch(`${url}/categories/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getToken}`,
-      },
-      body: JSON.stringify({ description: newDescription }), // ✅ send only description
-    });
+  };
 
-    if (res.ok) {
-      const updatedCategory = await res.json();
-      console.log("Edited:", updatedCategory);
+  const handleEdit = async (id, newDescription) => {
+    try {
+      const res = await fetch(`${url}/categories/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${newToken}`,
+        },
+        body: JSON.stringify({ description: newDescription }),
+      });
 
-      // Update the category in state
-      setCategories(
-        categories.map((cat) =>
-          cat.id === id ? { ...cat, description: updatedCategory.description } : cat
-        )
-      );
-    } else {
-      const errorText = await res.text();
-      console.error("Failed to edit category:", res.status, errorText);
+      if (res.ok) {
+        const updatedCategory = await res.json();
+        setCategories(
+          categories.map((cat) =>
+            cat.id === id ? { ...cat, description: updatedCategory.description } : cat
+          )
+        );
+      } else {
+        const errorText = await res.text();
+        console.error("Failed to edit category:", res.status, errorText);
+      }
+    } catch (error) {
+      console.error("Error editing category:", error);
     }
-  } catch (error) {
-    console.error("Error editing category:", error);
-  }
-};
-
-
+  };
 
   return (
     <div className="flex-1 p-6">
@@ -275,9 +355,6 @@ const handleEdit = async (id, newDescription) => {
           <p className="text-gray-700 mb-2">
             Looks like you haven't added any categories yet
           </p>
-          <a href="#" className="text-blue-600 hover:underline mb-4">
-            Need a place to start?
-          </a>
           <button
             onClick={() => setShowModal(true)}
             className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 shadow"
@@ -288,47 +365,42 @@ const handleEdit = async (id, newDescription) => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {categories.map((category, index) => (
-          <div key={index} className="border rounded-lg p-4 shadow">
-            {/* Make name clickable */}
-            <Link href={`/elab-admin/category/${category.id}`}>
-              <h3 className="font-semibold text-lg text-blue-600 hover:underline cursor-pointer">
-                {category.name}
-              </h3>
+            <div key={index} className="border rounded-lg p-4 shadow">
+              <Link href={`/elab-admin/category/${category.id}`}>
+                <h3 className="font-semibold text-lg text-blue-600 hover:underline cursor-pointer">
+                  {category.name}
+                </h3>
+                <p className="text-sm text-gray-500">{category.description}</p>
+                <div className="mt-2 flex justify-between items-center">
+                  <span className="text-xs text-gray-500">
+                    Created: {new Date(category.created_at).toLocaleDateString()}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    Updated: {new Date(category.updated_at).toLocaleDateString()}
+                  </span>
+                </div>
+              </Link>
 
-            <p className="text-sm text-gray-500">{category.description}</p>
-
-            <div className="mt-2 flex justify-between items-center">
-              <span className="text-xs text-gray-500">
-                Created: {new Date(category.created_at).toLocaleDateString()}
-              </span>
-              <span className="text-xs text-gray-500">
-                Updated: {new Date(category.updated_at).toLocaleDateString()}
-              </span>
-            </div>
-          </Link>
-
-            {/* Action Buttons */}
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                onClick={() => {
-                  setEditCategory(category);
-                  setEditModalOpen(true);
-                }}
-                className="flex items-center gap-1 px-3 py-1 text-sm text-blue-600 border border-blue-600 rounded hover:bg-blue-50"
+              <div className="mt-4 flex justify-end gap-2">
+                <button
+                  onClick={() => {
+                    setEditCategory(category);
+                    setEditModalOpen(true);
+                  }}
+                  className="flex items-center gap-1 px-3 py-1 text-sm text-blue-600 border border-blue-600 rounded hover:bg-blue-50"
                 >
-                <Pencil size={14} /> Edit
-              </button>
+                  <Pencil size={14} /> Edit
+                </button>
 
-              <button
-                onClick={() => handleDelete(category.id)}
-                className="flex items-center gap-1 px-3 py-1 text-sm text-red-600 border border-red-600 rounded hover:bg-red-50"
+                <button
+                  onClick={() => handleDelete(category.id)}
+                  className="flex items-center gap-1 px-3 py-1 text-sm text-red-600 border border-red-600 rounded hover:bg-red-50"
                 >
-                <Trash2 size={14} /> Delete
-              </button>
+                  <Trash2 size={14} /> Delete
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
-
+          ))}
 
           {/* Add New Category Card */}
           <div
@@ -351,12 +423,11 @@ const handleEdit = async (id, newDescription) => {
       />
 
       <EditCategoryModal
-      isOpen={editModalOpen}
-      onClose={() => setEditModalOpen(false)}
-      category={editCategory}
-      onSave={handleEdit}
-    />
-
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        category={editCategory}
+        onSave={handleEdit}
+      />
     </div>
   );
 }
