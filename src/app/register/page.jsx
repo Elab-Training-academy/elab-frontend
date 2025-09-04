@@ -32,6 +32,8 @@ const handleCreateAccount = async (e) => {
     return;
   }
 
+  if (password !== confirmPassword)
+
   setCreate(true);
 
   try {
