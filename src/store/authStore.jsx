@@ -7,7 +7,10 @@ export const useAuthStore = create((set, get) => ({
   courses: [],
   url: "https://elab-server-xg5r.onrender.com",
   token: null,
+  user: null,
 
+
+  setUser: (user) => set({ user }),
   setToken: (token) => set({ token }),
   clearToken: () => set({ token: null }),
 

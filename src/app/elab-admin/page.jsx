@@ -1,8 +1,15 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, Plus, BarChart2, Settings } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
 
 export default function Overview() {
+  // const { user, fetchUser } = useAuthStore();
+
+  // useEffect(() => {
+  //   fetchUser?.();
+  // }, [fetchUser]);
+
   const [activities] = useState([
     { action: "Study Session", user: "User A", time: "5 min. ago" },
     { action: "User Activity Detected", user: "User A", time: "5 min. ago" },
@@ -44,7 +51,10 @@ export default function Overview() {
       {/* Overview Section */}
       <div>
         <h2 className="text-2xl font-bold text-gray-800">Overview</h2>
-        <p className="text-gray-500">Welcome, Ibrahim</p>
+        <p className="text-gray-600 mb-2">Welcome back,</p>
+          {/* <h1 className="text-4xl font-bold text-gray-900 mb-6">
+            {user ? user.full_name : "Guest"}
+          </h1> */}
       </div>
 
       {/* Stats */}
