@@ -58,9 +58,9 @@ const Faq = () => {
 
   return (
     <div className="flex justify-center items-center bg-gray-50 py-8">
-      <div className="flex justify-center items-center w-[70vw]">
+      <div className="flex justify-center items-center w-[100vw]">
         {/* Main FAQ Card */}
-        <div className="rounded-lg w-[70vw] bg-blue-600 p-8 text-white shadow-lg">
+        <div className="rounded-lg lg:w-[70vw] w-[90vw] bg-blue-600 p-8 text-white shadow-lg">
           {/* Header */}
           <h1 className="mb-6 text-2xl font-bold">Exam Preparation FAQ</h1>
 
@@ -85,7 +85,7 @@ const Faq = () => {
                 return (
                   <div
                     key={item.id}
-                    className="border-b border-blue-500/30 py-4 mb-2 last:mb-0"
+                    className="border-b border-blue-500/30 py-1 mb-2 last:mb-0"
                   >
                     <button
                       onClick={() => toggleItem(item.id)}
@@ -120,7 +120,7 @@ const Faq = () => {
           {/* CTA Button */}
           <div className="flex items-center mt-8 gap-5">
             <p>My question is not here.</p>
-            <button className="rounded bg-white px-6 py-2 text-sm font-medium text-blue-600 hover:bg-gray-100 transition-colors">
+            <button className="rounded bg-white px-2 py-2 text-sm font-medium text-blue-600 hover:bg-gray-100 transition-colors">
               Ask Here
             </button>
           </div>

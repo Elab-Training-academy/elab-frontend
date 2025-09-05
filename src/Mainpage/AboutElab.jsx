@@ -116,38 +116,38 @@ const AboutElab = () => {
 
   return (
     <section
+    id="about"
       ref={sectionRef}
       className="text-black px-6 md:px-20 lg:px-16 py-5 bg-white overflow-hidden"
     >
       {/* Header */}
-      <div ref={headerRef} className="flex flex-col items-center w-full mx-auto">
-        <h2 className="text-2xl md:text-3xl font-semibold mb-1">
+      <div ref={headerRef} className="flex flex-col items-center w-full mx-auto text-center mt-5">
+        <h2 className="text-2xl md:text-3xl font-semibold">
           About{" "}
           <span className="text-blue-500 relative">
             ELAB Academy
             <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-blue-400 to-blue-600 transform scale-x-0 transition-transform duration-500"></span>
           </span>
         </h2>
-        <p className="text-gray-500 text-lg mb-1">
+        <p className="text-black text-[1rem] my-4">
           Empowering Healthcare Professionals to Succeed — Wherever They Are.
         </p>
       </div>
 
       {/* Description */}
-      <div className="flex flex-col items-center w-full mx-auto mt-6">
-        <p ref={addToDescriptionRefs} className="text-gray-400 mb-3">
+      <div className="flex flex-col items-center w-full gap-3 text-center">
+        <p ref={addToDescriptionRefs} className="text-gray-500">
           ELAB Academy is the academic division of ELAB Solutions International
           LLC, a globally trusted partner for healthcare licensure and
           professional development. Founded with a bold mission to simplify and
           strengthen the journey of international healthcare professionals.
         </p>
-        <p ref={addToDescriptionRefs} className="text-gray-400 mb-3">
+        <p ref={addToDescriptionRefs} className="text-gray-500">
           We specialize in preparing candidates for licensure and qualifying
           exams such as SCFHS, Prometric, NCLEX-RN/PN, DHA, HAAD, MOHAP, and
           English language exams like OET and IELTS.
         </p>
-        <p ref={addToDescriptionRefs} className="text-gray-400">
-          At ELAB Academy, we combine rigorous academic content, smart
+        <p ref={addToDescriptionRefs} className="text-gray-500">At ELAB Academy, we combine rigorous academic content, smart
           technology, and hands-on guidance to deliver end-to-end solutions —
           from learning to licensure.
         </p>
@@ -189,7 +189,7 @@ const AboutElab = () => {
       {/* Stats */}
       <div
         ref={statsRef}
-        className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center mt-16 max-w-5xl mx-auto"
+        className="grid grid-col md:grid-cols-4 gap-8 text-center mt-16 max-w-5xl mx-auto"
       >
         <div className="stat-item transform hover:scale-105 transition-transform duration-300">
           <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-500 to-blue-600 bg-clip-text text-transparent">

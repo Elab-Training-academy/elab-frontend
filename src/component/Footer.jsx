@@ -11,25 +11,25 @@ const Footer = () => {
   return (
     <>
       <footer className='bg-gray-50 pt-16 pb-8'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center'>
        
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 pb-12 border-b-2 border-indigo-500'>
             
      
-            <div className='space-y-6'>
-              <div className='flex-shrink-0'>
-            <Image
-                    src={max}
-                    alt="Description of the image"
-                    width={600}
-                    height={400}
-                    className="h-10 lg:h-12 w-auto mb-4"
-                />              
-              <p className='text-gray-600 leading-relaxed max-w-sm'>
-                  Empowering nurses worldwide with AI-powered education and comprehensive exam preparation.
-                </p>
+            <div className='space-y-6 justify-center'>
+              <div className="flex-shrink-0 w-full flex-col flex items-center">
+                <Image
+                      src={max}
+                      alt="Description of the image"
+                      width={600}
+                      height={400}
+                      className="h-10 lg:h-12 w-auto mb-4"
+                  />              
+                  <p className='text-gray-600 leading-relaxed max-w-sm '>
+                      Empowering nurses worldwide with AI-powered education and comprehensive exam preparation.
+                    </p>
               </div>
-              <div className='flex gap-4'>
+              <div className='flex gap-4 justify-center'>
                 <a href="#" className='p-3 bg-white rounded-full shadow-sm hover:shadow-md hover:bg-indigo-50 hover:text-indigo-600 transition-all duration-200'>
                   <FiFacebook className='text-xl' />
                 </a>
@@ -48,7 +48,7 @@ const Footer = () => {
               <h1 className='font-bold text-xl text-gray-800'>Quick Links</h1>
               <ul className='space-y-3'>
                 <li>
-                  <a href="#" className='text-gray-600 hover:text-indigo-600 transition-colors duration-200 block py-1'>
+                  <a href="#about" className='text-gray-600 hover:text-indigo-600 transition-colors duration-200 block py-1'>
                     About us
                   </a>
                 </li>
@@ -57,7 +57,7 @@ const Footer = () => {
                     Course
                   </a>
                 </li>
-                <li>
+                {/* <li>
                   <a href="#" className='text-gray-600 hover:text-indigo-600 transition-colors duration-200 block py-1'>
                     Pricing
                   </a>
@@ -66,7 +66,7 @@ const Footer = () => {
                   <a href="#" className='text-gray-600 hover:text-indigo-600 transition-colors duration-200 block py-1'>
                     Blog
                   </a>
-                </li>
+                </li> */}
                 <li>
                   <a href="/contact" className='text-gray-600 hover:text-indigo-600 transition-colors duration-200 block py-1'>
                     Contact
@@ -75,9 +75,9 @@ const Footer = () => {
               </ul>
             </div>
 
-            <div className='space-y-6'>
+            <div className='space-y-6 text-center'>
               <h1 className='font-bold text-xl text-gray-800'>Contact Us</h1>
-              <div className='space-y-4'>
+              <div className='space-y-4 text-center'>
                 <div className='text-gray-600'>
                   <p className='font-semibold text-gray-800 mb-1'>Nigeria:</p>
                   <p className='leading-relaxed'>4, Addo Road, Ajah, Lagos</p>
@@ -88,9 +88,9 @@ const Footer = () => {
                 </div>
               </div>
               <div className='space-y-3'>
-                <div className='flex items-center gap-3 text-gray-600'>
+                <div className='flex items-center gap-3 text-gray-600 justify-center'>
                   <FiPhoneCall className='text-indigo-600 text-lg flex-shrink-0' />
-                  <div className='text-sm space-y-1'>
+                  <div className='text-sm space-y-1 text-center'>
                     <a href="tel:+2348165634195" className='hover:text-indigo-600 block transition-colors duration-200'>
                       +234 816 563 4195
                     </a>
@@ -99,7 +99,7 @@ const Footer = () => {
                     </a>
                   </div>
                 </div>
-                <div className='flex items-center gap-3 text-gray-600'>
+                <div className='flex items-center gap-3 text-gray-600 justify-center'>
                   <MdEmail className='text-indigo-600 text-lg flex-shrink-0' />
                   <a href="mailto:support@elabsolution.org" className='hover:text-indigo-600 transition-colors duration-200'>
                     support@elabsolution.org

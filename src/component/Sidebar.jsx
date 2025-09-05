@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import max from "../../src/image/logo.png";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   LayoutDashboard,
@@ -35,29 +35,37 @@ const menuItems = [
 
 export default function Sidebar({ onClose }) {
   const pathname = usePathname();
-  
+  const router = useRouter();
+
   const handleClose = () => {
     if (typeof onClose === "function") onClose();
   };
 
   const handleNavigation = () => {
-    // Close mobile sidebar on navigation
-    if (window.innerWidth < 1024) {
-      handleClose();
-    }
+    if (window.innerWidth < 1024) handleClose();
   };
+
+ const handleLogout = () => {
+  localStorage.clear();
+  sessionStorage.clear();
+
+  // clear cookies
+  document.cookie.split(";").forEach((c) => {
+    document.cookie = c
+      .replace(/^ +/, "")
+      .replace(/=.*/, `=;expires=${new Date(0).toUTCString()};path=/`);
+  });
+
+  // Force a clean navigation
+  window.location.href = "/login";
+};
+
 
   return (
     <aside className="h-screen w-64 bg-white shadow-lg flex flex-col">
-
       <div className="p-4 flex items-center justify-between border-b border-gray-200">
         <a href="/" className="flex items-center">
-          <Image 
-            src={max} 
-            alt="ELAB Logo" 
-            className="w-[120px] h-auto" 
-            priority
-          />
+          <Image src={max} alt="ELAB Logo" className="w-[120px] h-auto" priority />
         </a>
         <button
           onClick={handleClose}
@@ -68,17 +76,16 @@ export default function Sidebar({ onClose }) {
         </button>
       </div>
 
-
       <nav className="flex-1 overflow-y-auto py-2">
         <div className="space-y-1">
           {menuItems.map((item, i) => {
             const Icon = item.icon;
             const isActive = pathname === item.path;
-            
+
             return (
-              <Link 
-                key={i} 
-                href={item.path} 
+              <Link
+                key={i}
+                href={item.path}
                 onClick={handleNavigation}
                 className="block"
               >
@@ -102,12 +109,9 @@ export default function Sidebar({ onClose }) {
 
       {/* Logout Section */}
       <div className="p-4 border-t border-gray-200 mt-auto">
-        <button 
+        <button
           className="w-full flex items-center gap-3 px-4 py-3 text-red-500 font-medium hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
-          onClick={() => {
-            // Add your logout logic here
-            console.log("Logout clicked");
-          }}
+          onClick={handleLogout}
         >
           <LogOut size={18} />
           <span className="text-sm">Logout</span>

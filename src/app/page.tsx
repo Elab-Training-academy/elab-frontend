@@ -6,13 +6,13 @@ import Faq from '../component/Faq';
 import Trial from '@/component/Trial'
 const page = () => {
   return (
-    <div>
+    <>
         <Navbar />
         <Home />
         <Faq />
         <Trial />
         <Footer />
-    </div>
+    </>
   )
 }
 
