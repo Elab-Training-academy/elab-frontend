@@ -8,8 +8,9 @@ export const useAuthStore = create((set, get) => ({
   url: "https://elab-server-xg5r.onrender.com",
   token: null,
   user: null,
+  role: null,
 
-
+  setRole: (role) => set({role}),
   setUser: (user) => set({ user }),
   setToken: (token) => set({ token }),
   clearToken: () => set({ token: null }),
@@ -112,30 +113,43 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  // Fetch user
+
+   // Fetch user + role
   fetchUser: async () => {
+    useAuthStore.getState().setRole(response.data.role);
     const { url } = get();
     if (typeof window === "undefined") return;
-    set({ loading: true });
+
     try {
       const token = localStorage.getItem("token");
+      if (!token) return;
+
       const res = await fetch(`${url}/users/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+
       if (!res.ok) {
         console.error("Failed to fetch user", res.status);
-        set({ user: null });
+        set({ user: null, role: null });
         return;
       }
+
       const data = await res.json();
-      set({ user: data });
+      console.log("Fetched user:", data);
+
+      // ✅ Assume API returns { id, name, email, role }
+
+      const role =
+    (data.role || data.user?.role || data.data?.role || "").toLowerCase();
+      console.log("Extracted role:", role);
+
+      localStorage.setItem("role", role);
+      set({ user: data, role: data.role });
     } catch (err) {
       console.error("Error fetching user:", err);
-      set({ user: null });
-    } finally {
-      set({ loading: false });
+      set({ user: null, role: null });
     }
   },
 

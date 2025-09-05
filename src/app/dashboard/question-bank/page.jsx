@@ -143,62 +143,48 @@
 import React, { useEffect, useState } from "react";
 import { Search, Bell } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
+import { useParams } from "next/navigation";
 
 const QuestionBank = () => {
+  const { id } = useParams(); // course_id
   const url = useAuthStore((state) => state.url);
-  const [token, setToken] = useState(null);
-  const [questions, setQuestions] = useState([]);
+  const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // ✅ Get token only on client
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedToken = localStorage.getItem("token");
-      setToken(savedToken);
-    }
-  }, []);
-
-  // ✅ Fetch questions when token + url available
-  useEffect(() => {
-    if (!token || !url) return;
-
-    const fetchQuestions = async () => {
+    const fetchModules = async () => {
       try {
-        const res = await fetch(`${url}/questions`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${url}/courses/${id}/modules`, {
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
+          console.error("Failed to fetch modules:", res.status);
+          setModules([]);
+          return;
         }
 
         const data = await res.json();
+        console.log("Modules response:", data);
 
         if (Array.isArray(data)) {
-          setQuestions(data);
-        } else if (data.questions && Array.isArray(data.questions)) {
-          setQuestions(data.questions);
-        } else if (data.data && Array.isArray(data.data)) {
-          setQuestions(data.data);
+          setModules(data);
+        } else if (data.modules) {
+          setModules(data.modules);
         } else {
-          setError("Unexpected data format received from server");
-          setQuestions([]);
+          setModules([]);
         }
-      } catch (err) {
-        console.error("Error fetching questions:", err);
-        setError(err.message);
-        setQuestions([]);
+      } catch (error) {
+        console.error("Error fetching modules:", error);
+        setModules([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchQuestions();
-  }, [url, token]);
+    if (id) fetchModules();
+  }, [id, url]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -209,7 +195,7 @@ const QuestionBank = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
-              placeholder="Type a command or search..."
+              placeholder="Search modules..."
               className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -222,53 +208,35 @@ const QuestionBank = () => {
             Question Bank
           </h1>
           <p className="text-gray-600 text-lg max-w-4xl">
-            Select a practice mode to match your learning style.
+            Select a module to see its questions.
           </p>
         </div>
 
-        {/* Questions */}
+        {/* Modules */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            All Questions
+            Modules
           </h2>
 
           {loading ? (
-            <p className="text-gray-500">Loading questions...</p>
-          ) : error ? (
-            <p className="text-red-500">Error: {error}</p>
-          ) : questions.length === 0 ? (
-            <p className="text-gray-500">No questions available.</p>
+            <p className="text-gray-500">Loading modules...</p>
+          ) : modules.length === 0 ? (
+            <p className="text-gray-500">No modules available.</p>
           ) : (
             <div className="space-y-6">
-              {questions.map((q, index) => (
+              {modules.map((m, index) => (
                 <div
-                  key={q.id || index}
-                  className="p-4 border border-gray-200 rounded-xl bg-gray-50"
+                  key={m.id || index}
+                  className="p-4 border border-gray-200 rounded-xl bg-gray-50 hover:bg-blue-50 cursor-pointer"
                 >
-                  <h3 className="font-medium text-gray-900 mb-2">
-                    {index + 1}. {q.question_text}
+                  <h3 className="font-medium text-gray-900 mb-1">
+                    {index + 1}. {m.title}
                   </h3>
-                  <ul className="space-y-2">
-                    {q.answer_options &&
-                      q.answer_options.map((opt) => (
-                        <li
-                          key={opt.id || opt.option_text}
-                          className="flex items-center space-x-2 text-gray-700"
-                        >
-                          <input
-                            type={
-                              q.answer_type === "select_all"
-                                ? "checkbox"
-                                : "radio"
-                            }
-                            name={q.id}
-                            value={opt.option_text}
-                            className="text-blue-600"
-                          />
-                          <span>{opt.option_text}</span>
-                        </li>
-                      ))}
-                  </ul>
+                  <p className="text-sm text-gray-600">
+                    Order: {m.order_number} | Duration:{" "}
+                    {m.duration ?? "N/A"} mins | Pass Mark:{" "}
+                    {m.pass_mark ?? "N/A"}
+                  </p>
                 </div>
               ))}
             </div>
