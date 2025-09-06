@@ -234,57 +234,110 @@ export const useAuthStore = create((set, get) => ({
 
   // Profile
   fetchProfile: async () => {
-    const { url } = get();
-    if (typeof window === "undefined") return;
-    set({ loadingProfile: true });
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${url}/users/profile`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!res.ok) {
-        console.error("Failed to fetch profile", res.status);
-        set({ profile: null });
-        return;
-      }
-      const data = await res.json();
-      set({ profile: data });
-    } catch (err) {
-      console.error("Error fetching profile:", err);
-      set({ profile: null });
-    } finally {
-      set({ loadingProfile: false });
-    }
-  },
+  const { url } = get();
+  set({ loadingProfile: true });
+  try {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${url}/profile`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return set({ profile: null });
+    set({ profile: await res.json() });
+  } catch (err) {
+    console.error("Error fetching profile:", err);
+    set({ profile: null });
+  } finally {
+    set({ loadingProfile: false });
+  }
+},
 
-  // Update profile
-  updateProfile: async (updatedData) => {
-    const { url } = get();
-    if (typeof window === "undefined") return false;
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${url}/users/profile`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(updatedData),
-      });
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("Failed to update profile", res.status, errorText);
-        return false;
-      }
-      const data = await res.json();
-      set({ profile: data });
-      return true;
-    } catch (err) {
-      console.error("Error updating profile:", err);
-      return false;
+updateProfile: async (updatedData) => {
+  const { url } = get();
+  try {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${url}/profile`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(updatedData),
+    });
+    if (!res.ok) return false;
+    set({ profile: await res.json() });
+    return true;
+  } catch (err) {
+    console.error("Error updating profile:", err);
+    return false;
+  }
+},
+
+
+  sendChat: async (message, file = null) => {
+  const url = get().url;
+  const token = get().token;
+  
+  try {
+    set({ loading: true });
+    
+    // Prepare request body and headers
+    let body;
+    let headers = {
+      Authorization: `Bearer ${token}`,
+    };
+
+    if (file) {
+      // Use FormData for file uploads
+      const formData = new FormData();
+      formData.append("message", message);
+      formData.append("file", file);
+      body = formData;
+    } else {
+      // JSON for text-only messages
+      headers["Content-Type"] = "application/json";
+      body = JSON.stringify({ message });
     }
-  },
+
+    const response = await fetch(`${url}/deepseek/chat/`, {
+      method: "POST",
+      headers,
+      body,
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      
+      // Update messages in store
+      set((state) => ({
+        messages: [
+          ...(state.messages || []),
+          { 
+            role: "user", 
+            content: message,
+            file: file ? { name: file.name, size: file.size } : null,
+            timestamp: new Date().toISOString()
+          },
+          {
+            role: "assistant",
+            content: data.reply,
+            timestamp: new Date().toISOString()
+          }
+        ]
+      }));
+      
+      return data;
+    } else {
+      console.error("Failed to send chat:", response.status);
+      return null;
+    }
+  } catch (err) {
+    console.error("Error sending chat:", err);
+    return null;
+  } finally {
+    set({ loading: false });
+  }
+}
+
+
 }));
 

@@ -10,17 +10,20 @@ import { useAuthStore } from '@/store/authStore';
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState(null);
+  const [imageError, setImageError] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(false); // ✅ local loading state
   const pathname = usePathname();
   const router = useRouter();
 
   const profile = useAuthStore((state) => state.profile);
   const fetchProfile = useAuthStore((state) => state.fetchProfile);
-  const loadingProfile = useAuthStore((state) => state.loadingProfile);
 
+  // fetch profile when navbar mounts
   useEffect(() => {
     if (fetchProfile) fetchProfile();
   }, [fetchProfile]);
 
+  
   useEffect(() => {
     console.log('Navbar - Current profile:', profile);
   }, [profile, loadingProfile]);
@@ -128,6 +131,7 @@ const Navbar = () => {
           </button>
 
           {/* Desktop Navigation */}
+
           <ul className='hidden lg:flex items-center space-x-8 font-bold text-gray-700'>
             {navItems.map((item) => (
               <li key={item.name}>
@@ -147,6 +151,7 @@ const Navbar = () => {
 
           {/* Desktop Profile / Auth Buttons */}
           <div className='hidden lg:flex items-center space-x-4'>
+
             {loadingProfile ? (
               <div className='flex items-center gap-2 px-4 py-2'>
                 <div className='w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin'></div>
@@ -201,9 +206,11 @@ const Navbar = () => {
         </div>
 
         {/* Mobile Dropdown */}
-        <div className={`lg:hidden transition-all duration-300 ease-in-out ${
-          isMenuOpen ? 'max-h-screen opacity-100 pb-6' : 'max-h-0 opacity-0 overflow-hidden'
-        }`}>
+        <div
+          className={`lg:hidden transition-all duration-300 ease-in-out ${
+            isMenuOpen ? 'max-h-screen opacity-100 pb-6' : 'max-h-0 opacity-0 overflow-hidden'
+          }`}
+        >
           <div className='px-2 pt-2 pb-3 space-y-1 bg-gray-50 rounded-lg mt-2'>
             <ul className='space-y-3 font-semibold text-gray-700 text-center'>
               {navItems.map((item) => (
@@ -224,6 +231,7 @@ const Navbar = () => {
 
             {/* Mobile Profile / Auth Buttons */}
             <div className='pt-4 space-y-3 border-t border-gray-200 flex flex-col items-center'>
+
               {loadingProfile ? (
                 <div className='flex items-center gap-2 w-full justify-center py-2'>
                   <div className='w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin'></div>

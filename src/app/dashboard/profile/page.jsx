@@ -17,6 +17,7 @@ const Profile = () => {
     email: "",
   });
   const [profileImage, setProfileImage] = useState("");
+  const [imageFile, setImageFile] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
   // Load profile on mount
@@ -29,12 +30,15 @@ const Profile = () => {
     if (profile) {
       console.log("Profile data from store:", profile); // Debug log
       setFormData({
-        firstName: profile.full_name || profile.firstName || "",
+        firstName: profile.full_name || profile.firstName || profile.first_name || "",
         lastName: profile.last_name || profile.lastName || "",
         email: profile.email || "",
       });
-      if (profile.profile_picture) {
-        setProfileImage(profile.profile_picture);
+      
+      // Set profile image from various possible fields
+      const existingImage = profile.profile_picture || profile.profilePicture || profile.avatar;
+      if (existingImage) {
+        setProfileImage(existingImage);
       }
     }
   }, [profile]);
@@ -55,9 +59,20 @@ const Profile = () => {
         return;
       }
 
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error("❌ Please select a valid image file.");
+        return;
+      }
+
+      // Store the file for upload
+      setImageFile(file);
+
+      // Create preview
       const reader = new FileReader();
       reader.onload = (e) => {
         setProfileImage(e.target.result);
+        console.log("Image preview set:", e.target.result.substring(0, 50) + "...");
       };
       reader.readAsDataURL(file);
     }
@@ -66,43 +81,104 @@ const Profile = () => {
   const handleCancel = () => {
     if (profile) {
       setFormData({
-        firstName: profile.full_name || profile.firstName || "",
+        firstName: profile.full_name || profile.firstName || profile.first_name || "",
         lastName: profile.last_name || profile.lastName || "",
         email: profile.email || "",
       });
-      if (profile.profile_picture) {
-        setProfileImage(profile.profile_picture);
+      
+      const existingImage = profile.profile_picture || profile.profilePicture || profile.avatar;
+      setProfileImage(existingImage || "");
+      setImageFile(null);
+    }
+  };
+
+  const uploadImageToServer = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('profile_picture', file);
+      formData.append('image', file); // Sometimes backend expects 'image'
+      
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      
+      const response = await fetch('/api/upload-profile-image', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`);
       }
+
+      const result = await response.json();
+      console.log("Image upload result:", result);
+      
+      // Return the image URL from the server response
+      return result.imageUrl || result.url || result.profile_picture || result.data?.url;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      
+      // Fallback: use base64 if server upload fails
+      console.log("Falling back to base64 storage");
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.readAsDataURL(file);
+      });
     }
   };
 
   const handleSave = async () => {
     setIsSaving(true);
 
-    const updatePayload = {
-      full_name: formData.firstName,
-      firstName: formData.firstName,
-      last_name: formData.lastName,
-      lastName: formData.lastName,
-      email: formData.email,
-    };
-
-    if (profileImage && profileImage !== profile?.profile_picture) {
-      updatePayload.profile_picture = profileImage;
-    }
-
-    console.log("Sending update payload:", updatePayload);
-    console.log("Current profile data:", profile);
-
     try {
+      let imageUrl = profileImage;
+
+      // If there's a new image file, upload it first
+      if (imageFile) {
+        console.log("Uploading new image...");
+        imageUrl = await uploadImageToServer(imageFile);
+        console.log("New image URL:", imageUrl);
+      }
+
+      const updatePayload = {
+        full_name: formData.firstName,
+        firstName: formData.firstName,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        lastName: formData.lastName,
+        email: formData.email,
+      };
+
+      // Add image URL to payload if we have one
+      if (imageUrl && imageUrl !== (profile?.profile_picture || profile?.profilePicture || profile?.avatar)) {
+        updatePayload.profile_picture = imageUrl;
+        updatePayload.profilePicture = imageUrl; // Sometimes backend expects this
+        updatePayload.avatar = imageUrl; // Sometimes backend expects this
+      }
+
+      console.log("Sending update payload:", updatePayload);
+
       const success = await updateProfile(updatePayload);
       console.log("Update result:", success);
 
-      if (success === true) {
+      if (success === true || success) {
         toast.success("✅ Profile updated successfully!");
+        
+        // Clear the file after successful update
+        setImageFile(null);
+        
+        // Fetch fresh profile data to ensure UI is in sync
         await fetchProfile();
+        
+        // Small delay to ensure state updates and trigger navbar refresh
+        setTimeout(() => {
+          window.dispatchEvent(new Event('profileUpdated'));
+        }, 100);
       } else {
-        toast.error("❌ Failed to update profile. Check console for details.");
+        toast.error("❌ Failed to update profile. Please check console for details.");
       }
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -116,18 +192,16 @@ const Profile = () => {
     return formData.firstName.trim() && formData.email.trim();
   };
 
- if (loadingProfile) {
-  return (
-    <div className="flex justify-center items-center min-h-screen">
-      <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-      <span className="ml-3 text-gray-600 text-lg font-medium">
-        Loading profile...
-      </span>
-    </div>
-  );
-}
-
-
+  if (loadingProfile) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <span className="ml-3 text-gray-600 text-lg font-medium">
+          Loading profile...
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
@@ -222,18 +296,26 @@ const Profile = () => {
 
                 <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 w-full">
                   {/* Current Profile Image */}
-                  <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 border-2 border-gray-200">
+                  <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 border-2 border-gray-200 flex-shrink-0">
                     {profileImage ? (
                       <img
                         src={profileImage}
                         alt="Profile"
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.log("Profile image failed to load:", profileImage);
+                          e.target.style.display = 'none';
+                          e.target.nextElementSibling.style.display = 'flex';
+                        }}
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
                         No Image
                       </div>
                     )}
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs" style={{display: 'none'}}>
+                      Error
+                    </div>
                   </div>
 
                   {/* Upload Area */}
@@ -263,6 +345,11 @@ const Profile = () => {
                         className="hidden"
                       />
                     </div>
+                    {imageFile && (
+                      <p className="text-sm text-green-600 mt-2">
+                        ✓ New image selected: {imageFile.name}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
