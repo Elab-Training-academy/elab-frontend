@@ -116,7 +116,7 @@ export const useAuthStore = create((set, get) => ({
 
    // Fetch user + role
   fetchUser: async () => {
-    useAuthStore.getState().setRole(response.data.role);
+    // useAuthStore.getState().setRole(response.data.role);
     const { url } = get();
     if (typeof window === "undefined") return;
 
