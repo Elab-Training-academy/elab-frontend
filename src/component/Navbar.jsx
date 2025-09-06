@@ -271,22 +271,31 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState(null);
   const [imageError, setImageError] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(false); // ✅ local loading state
   const pathname = usePathname();
   const router = useRouter();
 
   const profile = useAuthStore((state) => state.profile);
   const fetchProfile = useAuthStore((state) => state.fetchProfile);
 
+  // fetch profile when navbar mounts
   useEffect(() => {
-    if (fetchProfile) {
-      fetchProfile();
-    }
+    const getProfile = async () => {
+      if (fetchProfile) {
+        setLoadingProfile(true);
+        try {
+          await fetchProfile();
+        } catch (err) {
+          console.error("Failed to fetch profile:", err);
+        } finally {
+          setLoadingProfile(false);
+        }
+      }
+    };
+    getProfile();
   }, [fetchProfile]);
 
-<<<<<<< HEAD
-  // Reset image error when profile changes
-=======
->>>>>>> 98a99575eb1c10ef98c496372240efbfaa7d8405
+  
   useEffect(() => {
     setImageError(false);
   }, [profile?.profile_picture, profile?.profilePicture, profile?.avatar]);
@@ -347,72 +356,39 @@ const Navbar = () => {
     setIsMenuOpen(false);
   };
 
-<<<<<<< HEAD
+  function getDashboardRoute(role) {
+    if (!role) return "/"; // not logged in, go home
+    switch (role) {
+      case "super_admin":
+      case "admin":
+      case "staff":
+        return "/elab-admin";
+      default:
+        return "/dashboard";
+    }
+  }
+
   const getDisplayName = () => {
     if (!profile) return '';
-    return (
-      profile.full_name ||
+    return profile.full_name ||
       profile.firstName ||
       profile.first_name ||
       `${profile.firstName || ''} ${profile.lastName || ''}`.trim() ||
       profile.name ||
-      'User'
-    );
+      'User';
   };
 
   const getProfilePicture = () => {
     if (!profile || imageError) return '/default-avatar.png';
-    
+
     const profilePic = profile.profile_picture || profile.profilePicture || profile.avatar;
-    
-    // Handle relative URLs by making them absolute
-    if (profilePic && profilePic.startsWith('/')) {
-      return profilePic;
-    }
-    
-    // Handle full URLs
-    if (profilePic && (profilePic.startsWith('http://') || profilePic.startsWith('https://'))) {
-      return profilePic;
-    }
-    
-    // If we have a profile pic but it's not a valid URL format, try to construct it
-    if (profilePic) {
-      // This might need adjustment based on your backend setup
-      return profilePic.startsWith('/') ? profilePic : `/${profilePic}`;
-    }
-    
+
+    if (profilePic && profilePic.startsWith('/')) return profilePic;
+    if (profilePic && (profilePic.startsWith('http://') || profilePic.startsWith('https://'))) return profilePic;
+
+    if (profilePic) return profilePic.startsWith('/') ? profilePic : `/${profilePic}`;
+
     return '/default-avatar.png';
-=======
-function getDashboardRoute(role) {
-  if (!role) return "/"; // not logged in, go home
-  switch (role) {
-    case "super_admin":
-    case "admin":
-    case "staff":
-      return "/elab-admin";
-    default:
-      return "/dashboard";
-  }
-}
-
-
-  const getDisplayName = () => {
-    if (!profile) return '';
-    return profile.full_name || 
-           profile.firstName || 
-           profile.first_name || 
-           `${profile.firstName || ''} ${profile.lastName || ''}`.trim() ||
-           profile.name ||
-           'User';
-  };
-
-  const getProfilePicture = () => {
-    if (!profile) return '/default-avatar.png';
-    return profile.profile_picture || 
-           profile.profilePicture || 
-           profile.avatar || 
-           '/default-avatar.png';
->>>>>>> 98a99575eb1c10ef98c496372240efbfaa7d8405
   };
 
   const handleImageError = (e) => {
@@ -421,21 +397,20 @@ function getDashboardRoute(role) {
     e.currentTarget.src = '/default-avatar.png';
   };
 
-  // Debug: Log profile data
-  useEffect(() => {
-    if (profile) {
-      console.log('Profile data:', profile);
-      console.log('Profile picture URL:', getProfilePicture());
-    }
-  }, [profile]);
-
   return (
     <nav className='bg-white shadow-md sticky top-0 z-50'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='flex items-center justify-between h-16 lg:h-20'>
           {/* Logo */}
-<<<<<<< HEAD
-          <a href='/' className='flex-shrink-0'>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              const role = profile?.role || localStorage.getItem("role");
+              const redirectPath = getDashboardRoute(role);
+              router.push(redirectPath);
+            }}
+            className="flex-shrink-0"
+          >
             <Image
               src={max}
               alt="Logo"
@@ -443,29 +418,10 @@ function getDashboardRoute(role) {
               height={400}
               className="h-10 lg:h-12 w-auto mb-4"
             />
-          </a>
-=======
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                const role = profile?.role || localStorage.getItem("role");
-                const redirectPath = getDashboardRoute(role);
-                router.push(redirectPath);
-              }}
-              className="flex-shrink-0"
-            >
-              <Image
-                src={max}
-                alt="Logo"
-                width={600}
-                height={400}
-                className="h-10 lg:h-12 w-auto mb-4"
-              />
-            </button>
-
->>>>>>> 98a99575eb1c10ef98c496372240efbfaa7d8405
+          </button>
 
           {/* Desktop Navigation */}
+
           <ul className='hidden lg:flex items-center space-x-8 font-bold text-gray-700'>
             {navItems.map((item) => (
               <li key={item.name}>
@@ -485,24 +441,7 @@ function getDashboardRoute(role) {
 
           {/* Desktop Buttons */}
           <div className='hidden lg:flex items-center space-x-4'>
-<<<<<<< HEAD
-            {profile ? (
-              <button
-                onClick={() => router.push('/dashboard')}
-                className='flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 font-semibold'
-              >
-                <div className="relative">
-                  <Image
-                    src={getProfilePicture()}
-                    alt="Profile"
-                    width={32}
-                    height={32}
-                    className='rounded-full object-cover'
-                    onError={handleImageError}
-                    onLoad={() => setImageError(false)}
-                  />
-                </div>
-=======
+
             {loadingProfile ? (
               <div className='flex items-center gap-2 px-4 py-2'>
                 <div className='w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin'></div>
@@ -510,22 +449,19 @@ function getDashboardRoute(role) {
               </div>
             ) : profile ? (
               <button
-                  onClick={() => {
-                    const role = profile?.role || localStorage.getItem("role");
-                    router.push(getDashboardRoute(role));
-                  }}
-                  className='flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 font-semibold'
-                >
-
+                onClick={() => {
+                  const role = profile?.role || localStorage.getItem("role");
+                  router.push(getDashboardRoute(role));
+                }}
+                className='flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 font-semibold'
+              >
                 <img
                   src={getProfilePicture()}
                   alt="Profile"
                   className='w-8 h-8 rounded-full object-cover'
-                  onError={(e) => {
-                    (e.target).src = '/default-avatar.png';
-                  }}
+                  onError={(e) => (e.currentTarget.src = '/default-avatar.png')}
                 />
->>>>>>> 98a99575eb1c10ef98c496372240efbfaa7d8405
+
                 {getDisplayName()}
               </button>
             ) : (
@@ -577,47 +513,26 @@ function getDashboardRoute(role) {
 
             {/* Mobile Buttons */}
             <div className='pt-4 space-y-3 border-t border-gray-200 flex flex-col items-center'>
-<<<<<<< HEAD
-              {profile ? (
-                <button
-                  onClick={() => router.push('/dashboard')}
-                  className='flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-colors duration-200 font-semibold'
-                >
-                  <div className="relative">
-                    <Image
-                      src={getProfilePicture()}
-                      alt="Profile"
-                      width={24}
-                      height={24}
-                      className='rounded-full object-cover'
-                      onError={handleImageError}
-                      onLoad={() => setImageError(false)}
-                    />
-                  </div>
-=======
+
               {loadingProfile ? (
                 <div className='flex items-center gap-2 w-full justify-center py-2'>
                   <div className='w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin'></div>
                   <span className='text-gray-600'>Loading...</span>
                 </div>
               ) : profile ? (
-               <button
+                <button
                   onClick={() => {
                     const role = profile?.role || localStorage.getItem("role");
                     router.push(getDashboardRoute(role));
                   }}
                   className='flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-colors duration-200 font-semibold'
                 >
-
                   <img
                     src={getProfilePicture()}
                     alt="Profile"
                     className='w-6 h-6 rounded-full object-cover'
-                    onError={(e) => {
-                      (e.target).src = '/default-avatar.png';
-                    }}
+                    onError={(e) => (e.currentTarget.src = '/default-avatar.png')}
                   />
->>>>>>> 98a99575eb1c10ef98c496372240efbfaa7d8405
                   {getDisplayName()}
                 </button>
               ) : (
