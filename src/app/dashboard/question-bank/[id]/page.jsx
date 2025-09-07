@@ -19,7 +19,7 @@ const ProgressModal = ({ moduleId, isOpen, onClose }) => {
         if (!token) return setError("No token found");
 
         const res = await fetch(
-          `${url}/answer-options/user/question-stats?module_id=${moduleId}`,
+          `${url}/answer-options/user/${moduleId}/question-stats`,
           {
             method: "GET",
             headers: {

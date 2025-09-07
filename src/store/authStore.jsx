@@ -211,34 +211,14 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  // Index courses
-  fetchIndexCourses: async () => {
-    const { url } = get();
-    set({ loading: true });
-    try {
-      const res = await fetch(`${url}/index/courses`);
-      if (!res.ok) {
-        console.error("Failed to fetch index courses", res.status);
-        set({ courses: [] });
-        return;
-      }
-      const data = await res.json();
-      set({ courses: data });
-    } catch (err) {
-      console.error("Error fetching index courses:", err);
-      set({ courses: [] });
-    } finally {
-      set({ loading: false });
-    }
-  },
-
+  
   // Profile
   fetchProfile: async () => {
   const { url } = get();
   set({ loadingProfile: true });
   try {
     const token = localStorage.getItem("token");
-    const res = await fetch(`${url}/profile`, {
+    const res = await fetch(`${url}/users/profile`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) return set({ profile: null });
@@ -255,7 +235,7 @@ updateProfile: async (updatedData) => {
   const { url } = get();
   try {
     const token = localStorage.getItem("token");
-    const res = await fetch(`${url}/profile`, {
+    const res = await fetch(`${url}/users/profile`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
