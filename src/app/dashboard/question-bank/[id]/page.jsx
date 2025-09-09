@@ -105,7 +105,7 @@ const ProgressModal = ({ moduleId, isOpen, onClose }) => {
                 <div
                   className="bg-green-500 h-4 rounded-full transition-all duration-500"
                   style={{
-                    width: `${(stats.total_correct_answers / stats.total_questions_answered) * 100}%`,
+                    width: `${(stats.total_correct_answers / stats.total_questions) * 100}%`,
                   }}
                 ></div>
               </div>
