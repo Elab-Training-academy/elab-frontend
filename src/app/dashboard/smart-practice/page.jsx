@@ -157,7 +157,7 @@ const submitAnswer = async (questionId) => {
   payload = {
     question_id: questionId,
     selected_answer_ids: matchedAnswer ? [matchedAnswer.id] : null, // null instead of []
-    written_answer: answers[questionId] || "",
+    text_answer: answers[questionId] || "",
   };
   } else {
       // multiple choice
@@ -165,7 +165,7 @@ const submitAnswer = async (questionId) => {
       payload = {
         question_id: questionId,
         selected_answer_ids: selectedIds,
-        written_answer: null,
+        text_answer: null,
       };
     }
 
