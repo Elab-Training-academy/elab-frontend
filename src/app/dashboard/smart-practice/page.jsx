@@ -1,25 +1,93 @@
 "use client";
-import React, { useState } from "react";
-import { Search, Bell } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { useAuthStore } from "@/store/authStore";
 
 const SmartPractice = () => {
   const [questionType, setQuestionType] = useState("Mixed Practice");
-  const [courseCategories, setCourseCategories] = useState([
-    "All",
-    "Medicine and Surgery",
-  ]);
+  const [courseCategories, setCourseCategories] = useState(["All"]);
+  const [categories, setCategories] = useState([]);
   const [difficulty, setDifficulty] = useState("Medium");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [loadingCourses, setLoadingCourses] = useState(true);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [courses, setCourses] = useState([]);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [answers, setAnswers] = useState({});
+  const [results, setResults] = useState({});
+
+  const url = useAuthStore((state) => state.url);
 
   const questionTypes = ["Mixed Practice", "Fill in the gap", "Multiple choice"];
-  const categories = [
-    "All",
-    "Medicine and Surgery",
-    "Basic Sciences",
-    "Clinical Skills",
-    "Pharmacology",
-  ];
   const difficulties = ["Easy", "Medium", "Hard"];
+
+  // Mappers
+  const difficultyMap = { Easy: "easy", Medium: "medium", Hard: "hard" };
+  const questionTypeMap = {
+    "Mixed Practice": "mixed",
+    "Fill in the gap": "fill_gap",
+    "Multiple choice": "single_choice",
+  };
+
+  // ✅ Fetch courses
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        const res = await fetch(`${url}/orders/ordered-courses`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) {
+          console.error("Failed to fetch courses:", res.status);
+          return;
+        }
+
+        const data = await res.json();
+        const courseList = Array.isArray(data) ? data : data.courses || [];
+        setCourses(courseList);
+
+        if (courseList.length > 0) {
+          setSelectedCourse(courseList[0].course_id || courseList[0].id);
+        }
+      } catch (err) {
+        console.error("Error fetching courses:", err);
+      } finally {
+        setLoadingCourses(false);
+      }
+    };
+
+    fetchCourses();
+  }, [url]);
+
+  // ✅ Fetch categories
+  useEffect(() => {
+    if (!selectedCourse) return;
+
+    const fetchCategories = async () => {
+      try {
+        setLoadingCategories(true);
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        const res = await fetch(
+          `${url}/course-categories/${selectedCourse}/categories`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (!res.ok) throw new Error(`Failed categories: ${res.status}`);
+        const data = await res.json();
+        setCategories(data);
+      } catch (err) {
+        console.error("Error fetching categories:", err);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    fetchCategories();
+  }, [selectedCourse, url]);
 
   const toggleCategory = (category) => {
     if (category === "All") {
@@ -35,169 +103,263 @@ const SmartPractice = () => {
     }
   };
 
+  // ✅ Fetch questions
+  const startPractice = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return alert("Please login");
+
+      const selectedCategoryName = courseCategories.find((c) => c !== "All");
+      const selectedCategoryObj = categories.find((c) => c.name === selectedCategoryName);
+
+      const payload = {
+        course_id: selectedCourse,
+        difficulty: difficultyMap[difficulty],
+        question_type: questionTypeMap[questionType],
+        course_category_id: selectedCategoryObj?.id || null,
+      };
+
+      const res = await fetch(`${url}/sp-questions/filter/questions`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error(`Failed to fetch questions: ${res.status}`);
+      const data = await res.json();
+      setQuestions(data);
+      setAnswers({});
+      setResults({});
+    } catch (err) {
+      console.error("Error starting practice:", err);
+    }
+  };
+
+const submitAnswer = async (questionId) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) return alert("Please login");
+
+    const q = questions.find((x) => x.id === questionId);
+    let payload = { question_id: questionId };
+
+    if (q.question_type === "fill_gap") {
+  const userText = (answers[questionId] || "").trim().toLowerCase();
+
+  // try to find matching answer id
+  const matchedAnswer = q.answers.find(
+    (a) => a.answer.trim().toLowerCase() === userText
+  );
+
+  payload = {
+    question_id: questionId,
+    selected_answer_ids: matchedAnswer ? [matchedAnswer.id] : null, // null instead of []
+    written_answer: answers[questionId] || "",
+  };
+  } else {
+      // multiple choice
+      const selectedIds = answers[questionId] ? [answers[questionId]] : [];
+      payload = {
+        question_id: questionId,
+        selected_answer_ids: selectedIds,
+        written_answer: null,
+      };
+    }
+
+    const res = await fetch(`${url}/sp-questions/user/submit-answer`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errData = await res.json();
+      console.error("Submit failed response:", errData);
+      throw new Error(`Failed submit: ${res.status}`);
+    }
+
+    const data = await res.json();
+    setResults((prev) => ({ ...prev, [questionId]: data }));
+  } catch (err) {
+    console.error("Error submitting answer:", err);
+  }
+};
+
+
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center flex-1">
-              <div className="relative flex-1 max-w-lg">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Type a command or search..."
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-            <div className="flex items-center ml-4">
-              <button className="p-2 text-gray-400 hover:text-gray-500 relative">
-                <Bell className="h-6 w-6" />
-                <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-6">Smart Practice</h1>
+
+        {/* Course Selection */}
+        <div className="mb-6 space-y-4">
+          {/* Select Course */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Select Course</label>
+            <select
+              className="w-full border p-2 rounded"
+              value={selectedCourse || ""}
+              onChange={(e) => setSelectedCourse(e.target.value)}
+            >
+              {loadingCourses ? (
+                <option>Loading...</option>
+              ) : (
+                courses.map((c) => (
+                  <option key={c.course_id || c.id} value={c.course_id || c.id}>
+                    {c.course_name || c.title || "Unnamed Course"}
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
+
+          {/* Select Category */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Select Category</label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => toggleCategory("All")}
+                className={`px-3 py-1 rounded border ${
+                  courseCategories.includes("All") ? "bg-blue-600 text-white" : ""
+                }`}
+              >
+                All
               </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <p className="text-gray-600 mb-2">Hi Ibrahim,</p>
-          <h1 className="text-4xl font-bold text-gray-900">Smart Practice</h1>
-        </div>
-
-        {/* Search Bar */}
-        <div className="mb-8">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search question by keyword"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="block w-full pl-10 pr-3 py-4 border border-gray-300 rounded-xl text-lg leading-6 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Instructions */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-sm p-8 h-fit">
-              <div className="text-center mb-8">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                  Search and Select the question type that interests you most.
-                </h2>
-                <p className="text-gray-600 leading-relaxed">
-                  This choice helps us customize your practice session so it
-                  matches your pace, skills, and learning objectives.
-                </p>
-              </div>
-
-              <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-4 px-6 rounded-xl transition-colors duration-200">
-                Start Practice
-              </button>
-            </div>
-          </div>
-
-          {/* Right Column - Selection Options */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Question Type Selection */}
-            <div className="bg-white rounded-2xl shadow-sm p-8">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center">
-                Select Question Type
-              </h3>
-              <div className="flex flex-wrap gap-3 justify-center">
-                {questionTypes.map((type) => (
+              {loadingCategories ? (
+                <span>Loading...</span>
+              ) : (
+                categories.map((cat) => (
                   <button
-                    key={type}
-                    onClick={() => setQuestionType(type)}
-                    className={`px-6 py-3 rounded-full font-medium transition-all duration-200 ${
-                      questionType === type
-                        ? "bg-blue-600 text-white shadow-lg hover:bg-blue-700"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    key={cat.id}
+                    type="button"
+                    onClick={() => toggleCategory(cat.name)}
+                    className={`px-3 py-1 rounded border ${
+                      courseCategories.includes(cat.name)
+                        ? "bg-blue-600 text-white"
+                        : ""
                     }`}
                   >
-                    {type}
+                    {cat.name}
                   </button>
-                ))}
-              </div>
+                ))
+              )}
             </div>
+          </div>
 
-            {/* Course Categories Selection */}
-            <div className="bg-white rounded-2xl shadow-sm p-8">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center">
-                Select Course Categories
-              </h3>
-              <div className="flex flex-wrap gap-3 justify-center">
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => toggleCategory(category)}
-                    className={`px-6 py-3 rounded-full font-medium transition-all duration-200 ${
-                      courseCategories.includes(category)
-                        ? "bg-blue-600 text-white shadow-lg hover:bg-blue-700"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
-            </div>
+          {/* Question Type */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Question Type</label>
+            <select
+              className="w-full border p-2 rounded"
+              value={questionType}
+              onChange={(e) => setQuestionType(e.target.value)}
+            >
+              {questionTypes.map((qt) => (
+                <option key={qt} value={qt}>
+                  {qt}
+                </option>
+              ))}
+            </select>
+          </div>
 
-            {/* Difficulty Level Selection */}
-            <div className="bg-white rounded-2xl shadow-sm p-8">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center">
-                Select Difficulty Level
-              </h3>
-              <div className="flex gap-3 justify-center">
-                {difficulties.map((level) => (
-                  <button
-                    key={level}
-                    onClick={() => setDifficulty(level)}
-                    className={`px-8 py-3 rounded-full font-medium transition-all duration-200 ${
-                      difficulty === level
-                        ? "bg-blue-600 text-white shadow-lg hover:bg-blue-700"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    {level}
-                  </button>
-                ))}
-              </div>
-            </div>
+          {/* Difficulty */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Difficulty</label>
+            <select
+              className="w-full border p-2 rounded"
+              value={difficulty}
+              onChange={(e) => setDifficulty(e.target.value)}
+            >
+              {difficulties.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
-        {/* Selected Options Summary */}
-        <div className="mt-8 bg-white rounded-2xl shadow-sm p-6">
-          <h4 className="text-lg font-semibold text-gray-900 mb-4">
-            Current Selection:
-          </h4>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div>
-              <span className="font-medium text-gray-700">Question Type:</span>
-              <span className="ml-2 text-gray-900">{questionType}</span>
-            </div>
-            <div>
-              <span className="font-medium text-gray-700">Categories:</span>
-              <span className="ml-2 text-gray-900">
-                {courseCategories.join(", ")}
-              </span>
-            </div>
-            <div>
-              <span className="font-medium text-gray-700">Difficulty:</span>
-              <span className="ml-2 text-gray-900">{difficulty}</span>
-            </div>
+        {/* Start Practice button */}
+        <button
+          onClick={startPractice}
+          className="w-full bg-blue-600 text-white py-3 rounded-xl shadow hover:bg-blue-700"
+        >
+          Start Practice
+        </button>
+
+        {/* Questions */}
+        {questions.length > 0 && (
+          <div className="mt-6 space-y-6">
+            {questions.map((q) => (
+              <div key={q.id} className="p-6 bg-white rounded-xl shadow">
+                <h3 className="font-semibold text-lg mb-4">{q.question}</h3>
+
+                {/* Render answers depending on question type */}
+{q.question_type === "fill_gap" ? (
+  // Fill in the gap → text input
+  <input
+    type="text"
+    placeholder="Type your answer..."
+    value={answers[q.id] || ""}
+    onChange={(e) =>
+      setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))
+    }
+    className="w-full border p-2 rounded"
+  />
+) : (
+  // Multiple choice → radio buttons
+  <div className="space-y-2">
+    {q.answers.map((a) => (
+      <label key={a.id} className="flex items-center space-x-2">
+        <input
+          type="radio"
+          name={`q-${q.id}`}
+          value={a.id}
+          checked={answers[q.id] === a.id}
+          onChange={() =>
+            setAnswers((prev) => ({ ...prev, [q.id]: a.id }))
+          }
+        />
+        <span>{a.answer}</span>
+      </label>
+    ))}
+  </div>
+)}
+
+
+                {/* Submit button */}
+                <button
+                  onClick={() => submitAnswer(q.id)}
+                  className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                >
+                  Submit Answer
+                </button>
+
+                {/* Show result */}
+                {results[q.id] && (
+                  <div className="mt-3 p-3 rounded bg-gray-100">
+                    <p>
+                      {results[q.id].is_correct
+                        ? "✅ Correct!"
+                        : "❌ Wrong answer"}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {results[q.id].reason}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
