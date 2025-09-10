@@ -6,17 +6,20 @@ import Link from "next/link";
 import { ChevronRight, FileText, Video, Book } from "lucide-react";
 
 const SchedulePage = () => {
-  const { courseId, moduleId } = useParams();
+  const {id, course} = useParams();
   const url = useAuthStore((state) => state.url);
   const [schedule, setSchedule] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+
+    console.log(course);
+    
     const fetchSchedule = async () => {
       try {
         const token = localStorage.getItem("token");
         const res = await fetch(
-          `${url}/schedule-classes/${moduleId}/content`,
+          `${url}/schedule-classes/${course}/content`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -24,22 +27,29 @@ const SchedulePage = () => {
 
         if (!res.ok) {
           console.error("Failed to fetch schedule:", res.status);
-          setSchedule(null);
+          const rpdata = await res.json()
+          setSchedule(rpdata);
+          setLoading(false)
           return;
         }
 
         const data = await res.json();
         setSchedule(data);
+          setLoading(false)
+          console.log(data);
+          
+
       } catch (error) {
         console.error("Error fetching schedule:", error);
         setSchedule(null);
+        setLoading(false)
       } finally {
         setLoading(false);
       }
     };
 
-    if (moduleId) fetchSchedule();
-  }, [moduleId]);
+    if (course) fetchSchedule();
+  }, [course]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -58,7 +68,7 @@ const SchedulePage = () => {
           </Link>
           <ChevronRight className="w-4 h-4" />
           <Link
-            href={`/dashboard/my-courses/${courseId}`}
+            href={`/dashboard/my-courses/${id}`}
             className="hover:text-blue-600"
           >
             Modules
@@ -70,9 +80,9 @@ const SchedulePage = () => {
         {/* Content */}
         {loading ? (
           <p className="text-gray-500">Loading scheduled class...</p>
-        ) : !schedule ? (
+        ) : schedule.detail ? (
           <p className="text-gray-500">
-            No scheduled class found for this module.
+            {schedule.detail}
           </p>
         ) : (
           <div className="bg-white rounded-2xl shadow-lg p-8">
