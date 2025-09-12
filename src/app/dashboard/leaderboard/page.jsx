@@ -15,18 +15,28 @@ const Leaderboard = () => {
   const [leaderboardData, setLeaderboardData] = useState([]);
   const [userRank, setUserRank] = useState(null);
   const [loading, setLoading] = useState(true);
-  const newtoken = localStorage.getItem("token");
+  const [token, setToken] = useState(null);
+  
 
   const timeFrames = ["daily", "weekly", "monthly", "all_time"];
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedToken = localStorage.getItem("token");
+      setToken(savedToken);
+    }
+  }, []);
+
   // ✅ Fetch leaderboard data with filters
-  const fetchLeaderboard = async (timeFrame) => {
+  const fetchLeaderboard = async (timeFrame, token) => {
+    if (!token) return;
+
     setLoading(true);
     try {
       const res = await fetch(
         `${url}/leaderboard?time_frame=${timeFrame}&limit=50`,
         {
-          headers: { Authorization: `Bearer ${newtoken}` },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
@@ -43,8 +53,8 @@ const Leaderboard = () => {
   };
 
   useEffect(() => {
-    if (newtoken) fetchLeaderboard(activeTab);
-  }, [activeTab, newtoken]);
+    if (token) fetchLeaderboard(activeTab);
+  }, [activeTab, token]);
 
   const getBadgeIcon = (rank) => {
     switch (rank) {
