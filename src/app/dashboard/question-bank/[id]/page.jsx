@@ -187,23 +187,31 @@ const QuestionPage = ({ params }) => {
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
-  const handleAnswerChange = (q, value, type) => {
-    if (timeUp) return;
-    setAnswers((prev) => {
-      if (type === "multi_choice") {
-        const current = prev[q.id] || [];
-        if (current.includes(value)) {
-          return { ...prev, [q.id]: current.filter((v) => v !== value) };
-        } else {
-          return { ...prev, [q.id]: [...current, value] };
-        }
-      } else if (type === "fill_gap") {
-        return { ...prev, [q.id]: value };
+ const handleAnswerChange = (q, value, type) => {
+  setAnswers((prev) => {
+    if (type === "single_choice") {
+      return { ...prev, [q.id]: value }; // only one answer
+    }
+
+    if (type === "multiple_choice") {
+      const current = prev[q.id] || [];
+      if (current.includes(value)) {
+        // remove if already selected
+        return { ...prev, [q.id]: current.filter((v) => v !== value) };
       } else {
-        return { ...prev, [q.id]: value };
+        // add new option
+        return { ...prev, [q.id]: [...current, value] };
       }
-    });
-  };
+    }
+
+    if (type === "fill_gap") {
+      return { ...prev, [q.id]: value };
+    }
+
+    return prev;
+  });
+};
+
 
   const handleSubmit = async () => {
     clearInterval(timerRef.current); // ✅ stop the timer immediately
@@ -212,19 +220,32 @@ const QuestionPage = ({ params }) => {
       const token = localStorage.getItem("token");
       if (!token) return setError("No token found");
 
+
       for (const q of questions) {
-        let payload = { question_id: q.id, selected_answer_ids: [] };
+        const selectedIds = answers[q.id] ? [answers[q.id]] : [];
+        let payload = {
+           question_id: q.id, 
+           selected_answer_ids: selectedIds,
+          //  text_answer: answers[q.id] 
+        }
+        const multiple = answers[q.id] ? answers[q.id] : [];
+          payload ={
+            question_id: q.id,
+            selected_answer_ids: multiple,
+            text_answer: null,
+          }
 
         if (q.answer_type === "single_choice") {
-          if (answers[q.id]) payload.selected_answer_ids = [answers[q.id]];
+          if (answers[q.id]) payload.selected_answer_ids = selectedIds;
         }
 
-        if (q.answer_type === "multi_choice") {
-          if (answers[q.id]?.length) payload.selected_answer_ids = answers[q.id];
+       if (q.answer_type === "multiple_choice") {
+          if (answers[q.id]?.length) payload.selected_answer_ids = multiple;
         }
+
 
         if (q.answer_type === "fill_gap") {
-          payload.text_answer = answers[q.id] || "";
+          payload.text_answer = text_answer[q.id] || "";
         }
 
         await fetch(`${url}/answer-options/user/option`, {
@@ -325,77 +346,67 @@ const QuestionPage = ({ params }) => {
             </p>
 
             <div className="space-y-3">
-              {currentQuestion.answer_type === "single_choice" &&
-                currentQuestion.answer_options.map((opt) => (
-                  <label
-                    key={opt.id}
-                    className={`flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer ${
-                      timeUp ? "opacity-50 pointer-events-none" : ""
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name={currentQuestion.id}
-                      value={opt.id}
-                      checked={answers[currentQuestion.id] === opt.id}
-                      onChange={() =>
-                        handleAnswerChange(
-                          currentQuestion,
-                          opt.id,
-                          "single_choice"
-                        )
-                      }
-                      disabled={timeUp}
-                    />
-                    <span>{opt.option_text}</span>
-                  </label>
-                ))}
+  {currentQuestion.answer_type === "single_choice" &&
+    currentQuestion.answer_options.map((opt) => (
+      <label
+        key={opt.id}
+        className={`flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer ${
+          timeUp ? "opacity-50 pointer-events-none" : ""
+        }`}
+      >
+        <input
+          type="radio"
+          name={currentQuestion.id}
+          value={opt.id}
+          checked={answers[currentQuestion.id] === opt.id}
+          onChange={() =>
+            handleAnswerChange(currentQuestion, opt.id, "single_choice")
+          }
+          disabled={timeUp}
+        />
+        <span>{opt.option_text}</span>
+      </label>
+    ))}
 
-              {currentQuestion.answer_type === "multi_choice" &&
-                currentQuestion.answer_options.map((opt) => (
-                  <label
-                    key={opt.id}
-                    className={`flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer ${
-                      timeUp ? "opacity-50 pointer-events-none" : ""
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      name={currentQuestion.id}
-                      value={opt.id}
-                      checked={answers[currentQuestion.id]?.includes(opt.id)}
-                      onChange={() =>
-                        handleAnswerChange(
-                          currentQuestion,
-                          opt.id,
-                          "multi_choice"
-                        )
-                      }
-                      disabled={timeUp}
-                    />
-                    <span>{opt.option_text}</span>
-                  </label>
-                ))}
+  {currentQuestion.answer_type === "multiple_choice" &&
+  currentQuestion.answer_options.map((opt) => (
+    <label
+      key={opt.id}
+      className={`flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer ${
+        timeUp ? "opacity-50 pointer-events-none" : ""
+      }`}
+    >
+      <input
+        type="checkbox"
+        name={`${currentQuestion.id}-${opt.id}`}
+        value={opt.id}
+        checked={answers[currentQuestion.id]?.includes(opt.id) || false}
+        onChange={() =>
+          handleAnswerChange(currentQuestion, opt.id, "multiple_choice")
+        }
+        disabled={timeUp}
+      />
+      <span>{opt.option_text}</span>
+    </label>
+  ))}
 
-              {currentQuestion.answer_type === "fill_gap" && (
-                <input
-                  type="text"
-                  placeholder="Type your answer..."
-                  className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    timeUp ? "opacity-50 pointer-events-none" : ""
-                  }`}
-                  value={answers[currentQuestion.id] || ""}
-                  onChange={(e) =>
-                    handleAnswerChange(
-                      currentQuestion,
-                      e.target.value,
-                      "fill_gap"
-                    )
-                  }
-                  disabled={timeUp}
-                />
-              )}
-            </div>
+
+  {currentQuestion.answer_type === "fill_gap" && (
+    <input
+      type="text"
+      placeholder="Type your answer..."
+      className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+        timeUp ? "opacity-50 pointer-events-none" : ""
+      }`}
+      value={answers[currentQuestion.id] || ""}
+      onChange={(e) =>
+        handleAnswerChange(currentQuestion, e.target.value, "fill_gap")
+      }
+      disabled={timeUp}
+    />
+  )}
+</div>
+
 
             {/* Review feedback */}
             {timeUp && getReviewForQuestion(currentQuestion.id) && (
