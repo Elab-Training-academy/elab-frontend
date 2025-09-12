@@ -138,7 +138,7 @@ const SmartPractice = () => {
     }
   };
 
-const submitAnswer = async (questionId) => {
+const submitAnswer = async (questionId, text_answer) => {
   try {
     const token = localStorage.getItem("token");
     if (!token) return alert("Please login");
@@ -154,9 +154,13 @@ const submitAnswer = async (questionId) => {
     (a) => a.answer.trim().toLowerCase() === userText
   );
 
+  const nonmatchedAnswer = q.answers.find(
+    (a) => a.answer.trim().toLowerCase() != userText
+  );
+
   payload = {
     question_id: questionId,
-    selected_answer_ids: matchedAnswer ? [matchedAnswer.id] : null, // null instead of []
+    selected_answer_ids: matchedAnswer ? [matchedAnswer.id] : [nonmatchedAnswer.id], // null instead of []
     text_answer: answers[questionId] || "",
   };
   } else {
