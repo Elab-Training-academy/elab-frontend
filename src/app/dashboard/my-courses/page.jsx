@@ -244,9 +244,13 @@ const NCLEXCourseDashboard = () => {
 
         {/* ===================== Ordered Courses ===================== */}
         <div className="mb-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+          <div className="flex lg:items-center lg:justify-between mb-6 lg:flex-row flex-col">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2 lg:mb-0">
             🎓 My Ordered Courses
-          </h2>
+            </h2>
+
+            <button className="bg-blue-500 px-2 py-2 rounded-md text-white font-bold" onClick={()=>{window.location.href='/ExamPrep'}}>Enroll for new course</button>
+          </div>
           {loadingCourses || loadingProgress ? (
             <p className="text-gray-500">Loading your courses...</p>
           ) : coursesOrders.length === 0 ? (

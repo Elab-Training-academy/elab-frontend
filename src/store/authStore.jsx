@@ -2,6 +2,7 @@
 
 // src/store/authStore.js
 import { create } from "zustand";
+import { toast } from 'react-toastify';
 
 export const useAuthStore = create((set, get) => ({
   courses: [],
@@ -307,6 +308,16 @@ updateProfile: async (updatedData) => {
       
       return data;
     } else {
+        if (response.status === 401) {
+          toast.warn("Session expired. Please log in again.");
+          set({ token: null, user: null, role: null });
+          localStorage.removeItem("token");
+          localStorage.removeItem("role");
+          return window.location.href = "/login";
+        }
+
+      const err = await response.json();
+      toast.warn(err.detail|| "Failed to send chat. Please try again.");
       console.error("Failed to send chat:", response.status);
       return null;
     }
