@@ -1,6 +1,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/authStore";
+import { toast } from 'react-toastify';
+import ToastWrapper from "@/component/ToastWrapper";
 
 const SmartPractice = () => {
   const [questionType, setQuestionType] = useState("Mixed Practice");
@@ -14,6 +16,7 @@ const SmartPractice = () => {
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
   const [results, setResults] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const url = useAuthStore((state) => state.url);
 
@@ -33,13 +36,19 @@ const SmartPractice = () => {
     const fetchCourses = async () => {
       try {
         const token = localStorage.getItem("token");
-        if (!token) return;
+        if (!token) {
+          toast.error("Session expired. Please log in again.");
+          setLoadingCourses(false);
+          return window.location.href = "/login";
+        }
 
         const res = await fetch(`${url}/orders/ordered-courses`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         if (!res.ok) {
+          const err = await res.json();
+          toast.error(err.detail || "Failed to fetch courses. Please try again.");
           console.error("Failed to fetch courses:", res.status);
           return;
         }
@@ -51,6 +60,8 @@ const SmartPractice = () => {
         if (courseList.length > 0) {
           setSelectedCourse(courseList[0].course_id || courseList[0].id);
         }
+
+        
       } catch (err) {
         console.error("Error fetching courses:", err);
       } finally {
@@ -105,6 +116,7 @@ const SmartPractice = () => {
 
   // ✅ Fetch questions
   const startPractice = async () => {
+    setLoading(true);
     try {
       const token = localStorage.getItem("token");
       if (!token) return alert("Please login");
@@ -127,14 +139,30 @@ const SmartPractice = () => {
         },
         body: JSON.stringify(payload),
       });
-
-      if (!res.ok) throw new Error(`Failed to fetch questions: ${res.status}`);
+      
+      setLoading(false);
+      if (!res.ok) {
+        const err = await res.json();
+        console.error("Failed to fetch questions:", err);
+        throw new Error(err.detail || `Failed to fetch questions: ${res.status}`);
+      }
+      
       const data = await res.json();
+      if (!Array.isArray(data) || data.length === 0) {
+        
+        toast.info("No questions found for the selected criteria.");
+        setQuestions([]);
+        setAnswers({});
+        setResults({});
+        return;
+      }
       setQuestions(data);
       setAnswers({});
       setResults({});
     } catch (err) {
+      toast.error("Error starting practice. Please try again.");
       console.error("Error starting practice:", err);
+      setLoading(false);
     }
   };
 
@@ -295,8 +323,9 @@ const submitAnswer = async (questionId, text_answer) => {
         <button
           onClick={startPractice}
           className="w-full bg-blue-600 text-white py-3 rounded-xl shadow hover:bg-blue-700"
+          disabled={loading || loadingCourses}
         >
-          Start Practice
+          {loading ? "Loading..." : "Start Practice"}
         </button>
 
         {/* Questions */}

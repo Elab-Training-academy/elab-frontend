@@ -1,6 +1,3 @@
-
-
-
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -18,6 +15,7 @@ export default function CaseStudyQuestions() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showResultModal, setShowResultModal] = useState(false);
   const [stats, setStats] = useState(null);
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
   const router = useRouter();
 
   // ✅ Fetch questions
@@ -63,12 +61,15 @@ export default function CaseStudyQuestions() {
   const handleSubmit = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
+      toast.error("Session expired. Please log in again.");
       router.push("/login");
       return;
     }
 
     try {
       // Submit each answer
+      setLoadingSubmit(true);
+      if (questions.length === 0) throw new Error("No questions to submit");
       for (const q of questions) {
         const selectedAnswerId = selectedAnswers[q.id];
         if (!selectedAnswerId) continue;
@@ -88,9 +89,11 @@ export default function CaseStudyQuestions() {
         });
       }
 
+      setLoadingSubmit(false);
+
       // Submit review
       await fetch(`${url}/case-studies/${course_id}/reviews`, {
-        method: "GET", // ⚠️ confirm with backend if POST is required
+        method: "GET", 
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -119,6 +122,7 @@ export default function CaseStudyQuestions() {
         position: "top-right",
         autoClose: 4000,
       });
+      setLoadingSubmit(false);
     }
   };
 
@@ -215,8 +219,9 @@ export default function CaseStudyQuestions() {
               <button
                 className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
                 onClick={handleSubmit}
+                disabled={loadingSubmit}
               >
-                Yes, Submit
+                {loadingSubmit ? "Submitting..." : "Yes, Submit"}
               </button>
             </div>
           </div>

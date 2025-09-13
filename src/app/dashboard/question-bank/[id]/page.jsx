@@ -2,6 +2,8 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
+import {toast} from 'react-toastify';
+import ToastWrapper from "@/component/ToastWrapper";
 
 const ProgressModal = ({ moduleId, isOpen, onClose }) => {
   const url = useAuthStore((state) => state.url);
@@ -16,7 +18,10 @@ const ProgressModal = ({ moduleId, isOpen, onClose }) => {
       try {
         setLoading(true);
         const token = localStorage.getItem("token");
-        if (!token) return setError("No token found");
+        if (!token) {
+          toast.error("Session expired. Please log in again.");
+          return setError("No token found");
+        }
 
         const res = await fetch(
           `${url}/answer-options/user/${moduleId}/question-stats`,
@@ -34,6 +39,7 @@ const ProgressModal = ({ moduleId, isOpen, onClose }) => {
         setStats(data);
       } catch (err) {
         setError(err.message || "Error fetching stats");
+        toast.error(err.message || "Error fetching stats");
       } finally {
         setLoading(false);
       }
@@ -313,7 +319,11 @@ const QuestionPage = ({ params }) => {
 
         {/* Question Navigation */}
         <div className="mb-6 flex flex-wrap gap-2">
-          {questions.map((q, index) => (
+          {questions.length === 0 && !loading && !error && (
+            <p className="text-gray-500 text-center">No questions available.</p>
+          )}
+          {
+          questions.map((q, index) => (
             <button
               key={q.id}
               onClick={() => setCurrentIndex(index)}

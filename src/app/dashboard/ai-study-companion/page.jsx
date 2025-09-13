@@ -5,6 +5,7 @@ import { Mic, Paperclip, Send, Loader2 } from "lucide-react";
 import { useAuthStore } from "../../../store/authStore"; // adjust path if needed
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import ToastWrapper from "@/component/ToastWrapper";
 
 const AIStudyCompanionPage = () => {
   const [input, setInput] = useState("");
@@ -134,6 +135,7 @@ const AIStudyCompanionPage = () => {
           </button>
         </div>
       )}
+      <ToastWrapper />
     </div>
   );
 };
