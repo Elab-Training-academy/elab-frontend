@@ -1,81 +1,158 @@
+
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Search, Clock, Hand, TrendingUp, Bell } from 'lucide-react';
+import { Search, Bell } from 'lucide-react';
+import { useAuthStore } from '@/store/authStore';
+
+// ✅ Circular Progress Component
+const CircularProgress = ({ percentage }) => {
+  const safePercent = Math.min(100, Math.max(0, Number(percentage) || 0));
+  const radius = 20;
+  const strokeWidth = 4;
+  const normalizedRadius = radius - strokeWidth * 0.5;
+  const circumference = normalizedRadius * 2 * Math.PI;
+  const strokeDashoffset =
+    circumference - (safePercent / 100) * circumference;
+
+  return (
+    <svg height={radius * 2} width={radius * 2}>
+      <circle
+        stroke="#E5E7EB"
+        fill="transparent"
+        strokeWidth={strokeWidth}
+        r={normalizedRadius}
+        cx={radius}
+        cy={radius}
+      />
+      <circle
+        stroke="#3B82F6"
+        fill="transparent"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeDasharray={circumference + ' ' + circumference}
+        style={{ strokeDashoffset, transition: 'stroke-dashoffset 0.35s' }}
+        r={normalizedRadius}
+        cx={radius}
+        cy={radius}
+      />
+      <text
+        x="50%"
+        y="50%"
+        textAnchor="middle"
+        dy=".3em"
+        fontSize="10"
+        fontWeight="bold"
+        fill="#374151"
+      >
+        {safePercent}%
+      </text>
+    </svg>
+  );
+};
 
 const ExamReadinessDashboard = () => {
-  const [readinessScore, setReadinessScore] = useState(50);
-  const [confidenceLevel, setConfidenceLevel] = useState(50);
-  const [currentProgress, setCurrentProgress] = useState(82);
+  const [courses, setCourses] = useState([]);
+  const [readinessData, setReadinessData] = useState({});
+  const [loading, setLoading] = useState(true);
+  const { url } = useAuthStore();
 
-  // Simulate progress updates
+  // ✅ Fetch ordered courses
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentProgress(prev => {
-        const variation = Math.random() * 2 - 1; // -1 to 1
-        return Math.max(80, Math.min(85, prev + variation));
-      });
-    }, 3000);
+    const fetchCourses = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
 
-    return () => clearInterval(interval);
-  }, []);
+        const res = await fetch(`${url}/orders/ordered-courses`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error('Failed to fetch courses');
+        const data = await res.json();
+        const courseList = Array.isArray(data) ? data : data.courses || [];
+        setCourses(courseList);
+      } catch (err) {
+        console.error('Error fetching courses:', err);
+      }
+    };
+    fetchCourses();
+  }, [url]);
 
-  const CircularProgress = ({ percentage, size = 120, strokeWidth = 8 }) => {
-    const radius = (size - strokeWidth) / 2;
-    const circumference = radius * 2 * Math.PI;
-    const strokeDashoffset = circumference - (percentage / 100) * circumference;
+  // ✅ Fetch readiness data
+  useEffect(() => {
+    const fetchAllReadiness = async () => {
+      if (courses.length === 0) return;
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
 
+        const readinessResults = {};
+        for (const course of courses) {
+          const courseId = course.course_id || course.id;
+          try {
+            const res = await fetch(
+              `${url}/progress/readiness?course_id=${courseId}`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            if (res.ok) {
+              const data = await res.json();
+              readinessResults[courseId] = data;
+            } else {
+              readinessResults[courseId] = null;
+            }
+          } catch {
+            readinessResults[courseId] = null;
+          }
+        }
+        setReadinessData(readinessResults);
+      } catch (err) {
+        console.error('Error fetching readiness:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAllReadiness();
+  }, [courses, url]);
+
+  const ProgressBar = ({ percentage, className = '' }) => {
+    const safePercent = Math.min(100, Math.max(0, Number(percentage) || 0));
     return (
-      <div className="relative flex items-center justify-center">
-        <svg width={size} height={size} className="transform -rotate-90">
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            stroke="#e5e7eb"
-            strokeWidth={strokeWidth}
-            fill="none"
-          />
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            stroke="#3b82f6"
-            strokeWidth={strokeWidth}
-            fill="none"
-            strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset}
-            strokeLinecap="round"
-            className="transition-all duration-1000 ease-out"
-          />
-        </svg>
-        <div className="absolute flex flex-col items-center">
-          <span className="text-2xl font-bold text-gray-800">{percentage}%</span>
-          <span className="text-sm text-gray-500">Ready</span>
-        </div>
+      <div className={`w-full bg-gray-200 rounded-full h-2 ${className}`}>
+        <div
+          className="bg-blue-500 h-2 rounded-full transition-all duration-500 ease-out"
+          style={{ width: `${safePercent}%` }}
+        />
       </div>
     );
   };
 
-  const ProgressBar = ({ percentage, className = "" }) => (
-    <div className={`w-full bg-gray-200 rounded-full h-2 ${className}`}>
-      <div
-        className="bg-blue-500 h-2 rounded-full transition-all duration-500 ease-out"
-        style={{ width: `${percentage}%` }}
-      />
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-600">Loading Exam Readiness...</p>
+      </div>
+    );
+  }
+
+  if (courses.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-600">No courses found.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
+      <div className="max-w-7xl mx-auto">
+        {/* ✅ Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Type a command or search..."
+                placeholder="Search courses..."
                 className="pl-10 pr-4 py-2 w-80 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -83,145 +160,75 @@ const ExamReadinessDashboard = () => {
           <Bell className="w-6 h-6 text-gray-600 cursor-pointer hover:text-blue-600 transition-colors" />
         </div>
 
-        {/* Main Content */}
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">{}</h1>
-            <h2 className="text-4xl font-bold text-gray-900">Exam Readiness</h2>
-          </div>
+        {/* ✅ One Card for All Courses */}
+        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Exam Readiness Overview
+          </h2>
 
-          {/* Top Row - Study Time and Confidence */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Study Time Card */}
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-800">2-3 Weeks</h3>
-                  <p className="text-gray-600">Study Time Needed</p>
-                </div>
-              </div>
-            </div>
+          <div className="space-y-6">
+            {courses.map((course) => {
+              const courseId = course.course_id || course.id;
+              const readiness = readinessData[courseId];
+              const overall = Math.round(Number(readiness?.overall_score) || 0);
 
-            {/* Confidence Level Card */}
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Hand className="w-5 h-5 text-blue-600" />
+              return (
+                <div key={courseId} className="p-4 border rounded-lg bg-gray-50">
+                  {/* ✅ Title + Circular Progress */}
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      {course.title || course.name || `Course ${courseId}`}
+                    </h3>
+                    <div className="flex items-center gap-3">
+                      <CircularProgress percentage={overall} />
+                      <span className="text-sm font-bold text-gray-700">
+                        {overall}% Ready
+                      </span>
+                    </div>
                   </div>
-                  <p className="text-gray-600">Confidence Level</p>
+
+                  {readiness ? (
+                    <>
+                      <ProgressBar percentage={overall} className="mb-4" />
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {readiness.category_breakdown.map((cat) => {
+                          const correctAnswers = parseInt(cat.correct_answers ?? 0, 10);
+                          const totalQuestions = parseInt(cat.total_questions ?? 0, 10);
+                          const accuracy = Math.min(
+                            100,
+                            Math.max(0, parseFloat(cat.accuracy ?? 0))
+                          );
+
+                          return (
+                            <div
+                              key={cat.category}
+                              className="p-3 border rounded-lg bg-white shadow-sm"
+                            >
+                              <h4 className="font-semibold text-blue-600 capitalize">
+                                {cat.category.replace('_', ' ')}
+                              </h4>
+                              <p className="text-gray-600 text-sm">
+                                Total Questions: {totalQuestions}
+                              </p>
+                              <p className="text-gray-600 text-sm">
+                                Correct: {correctAnswers}
+                              </p>
+                              <p className="text-gray-600 text-sm">
+                                Accuracy: {accuracy}%
+                              </p>
+                              <ProgressBar percentage={accuracy} className="mt-2" />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-gray-500">No readiness data available.</p>
+                  )}
                 </div>
-                <span className="text-xl font-bold text-gray-800">{confidenceLevel}%</span>
-              </div>
-              <ProgressBar percentage={confidenceLevel} />
-            </div>
+              );
+            })}
           </div>
-
-          {/* Middle Row - Exam Readiness and Recent Progress */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Exam Readiness Card */}
-            <div className="bg-white rounded-xl p-8 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-              <h3 className="text-xl font-semibold text-gray-800 mb-6 text-center">Exam Readiness</h3>
-              <div className="flex flex-col items-center space-y-4">
-                <CircularProgress percentage={readinessScore} />
-                <div className="text-center">
-                  <p className="text-lg font-semibold text-gray-800">Pass Probability: High</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Recent Progress Card */}
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-              <h3 className="text-xl font-semibold text-gray-800 mb-6">Recent Progress</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Now</span>
-                  <span className="font-semibold text-gray-800">{Math.round(currentProgress)}%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">In 1 week</span>
-                  <span className="font-semibold text-gray-800">82%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">In 2 weeks</span>
-                  <span className="font-semibold text-gray-800">82%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom Row - Readiness Projection */}
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-            <h3 className="text-xl font-semibold text-gray-800 mb-6">Readiness Projection</h3>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-8">
-                <div>
-                  <p className="text-2xl font-bold text-gray-800">82%</p>
-                  <p className="text-sm text-gray-500">Last week</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-800">87%</p>
-                  <p className="text-sm text-gray-500">This week</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2 text-green-600">
-                <TrendingUp className="w-5 h-5" />
-                <span className="text-xl font-bold">+5%</span>
-                <span className="text-sm">Improvement</span>
-              </div>
-            </div>
-
-            {/* Progress visualization */}
-            <div className="mt-6 relative">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-500">Progress Timeline</span>
-                <span className="text-sm font-medium text-gray-700">Week-over-week improvement</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-3 relative overflow-hidden">
-                <div
-                  className="bg-gradient-to-r from-blue-400 to-blue-600 h-3 rounded-full transition-all duration-1000 ease-out relative"
-                  style={{ width: '87%' }}
-                >
-                  <div className="absolute right-0 top-0 h-full w-8 bg-gradient-to-r from-transparent to-green-400 rounded-r-full animate-pulse"></div>
-                </div>
-              </div>
-              <div className="flex justify-between mt-2 text-xs text-gray-500">
-                <span>0%</span>
-                <span>25%</span>
-                <span>50%</span>
-                <span>75%</span>
-                <span>100%</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Interactive Elements */}
-        <div className="mt-8 flex justify-center space-x-4">
-          <button
-            onClick={() => setReadinessScore(Math.min(100, readinessScore + 10))}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Study Session +
-          </button>
-          <button
-            onClick={() => setConfidenceLevel(Math.min(100, confidenceLevel + 5))}
-            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-          >
-            Practice Test +
-          </button>
-          <button
-            onClick={() => {
-              setReadinessScore(50);
-              setConfidenceLevel(50);
-            }}
-            className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-          >
-            Reset
-          </button>
         </div>
       </div>
     </div>

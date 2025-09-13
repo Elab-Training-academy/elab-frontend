@@ -14,7 +14,7 @@ const Leaderboard = () => {
   const [activeTab, setActiveTab] = useState("all_time");
   const [leaderboardData, setLeaderboardData] = useState([]);
   const [userRank, setUserRank] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [token, setToken] = useState(null);
   
 
@@ -28,17 +28,20 @@ const Leaderboard = () => {
   }, []);
 
   // ✅ Fetch leaderboard data with filters
-  const fetchLeaderboard = async (timeFrame, token) => {
-    if (!token) return;
+  const fetchLeaderboard = async (timeFrame) => {
+    const newToken = localStorage.getItem("token");
+    if (!newToken) return;
 
     setLoading(true);
     try {
       const res = await fetch(
         `${url}/leaderboard?time_frame=${timeFrame}&limit=50`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${newToken}` },
         }
       );
+      console.log(newToken);
+      
 
       if (!res.ok) throw new Error("Failed to fetch leaderboard");
       const data = await res.json();
@@ -53,7 +56,8 @@ const Leaderboard = () => {
   };
 
   useEffect(() => {
-    if (token) fetchLeaderboard(activeTab);
+    const newToken = localStorage.getItem('token')
+    if (newToken) fetchLeaderboard(activeTab);
   }, [activeTab, token]);
 
   const getBadgeIcon = (rank) => {
