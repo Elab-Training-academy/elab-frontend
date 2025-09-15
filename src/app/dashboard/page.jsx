@@ -1,14 +1,46 @@
 "use client";
-import React, { useEffect } from "react";
-import { Search, Users, TrendingUp, ChevronRight, Bell } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Search, ChevronRight, Bell, TrendingUp } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 
 const Dashboard = () => {
-  const { user, fetchUser } = useAuthStore();
+  const { user, fetchUser, token } = useAuthStore();
+  const [stats, setStats] = useState({ total_points: 0, rank: 0 });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchUser?.();
-  }, [fetchUser]);
+
+    const fetchStats = async () => {
+      try {
+        const res = await fetch(
+          "https://elab-server-xg5r.onrender.com/progress/user-rank-and-points",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token || localStorage.getItem("accessToken")}`,
+            },
+          }
+        );
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch stats");
+        }
+
+        const data = await res.json();
+        setStats(data.user_rank);
+      } catch (error) {
+        console.error("Error fetching user stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (token || localStorage.getItem("accessToken")) {
+      fetchStats();
+    }
+  }, [fetchUser, token]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -28,7 +60,7 @@ const Dashboard = () => {
           <Bell className="w-6 h-6 text-gray-600" />
         </div>
 
-        {/* Welcome Section */}
+           {/* Welcome Section */}
         <div className="mb-8">
           <p className="text-gray-600 mb-2">Welcome back,</p>
           <h1 className="text-4xl font-bold text-gray-900 mb-6">
@@ -37,26 +69,32 @@ const Dashboard = () => {
 
           {/* Stats Cards */}
           <div className="flex space-x-4 mb-8">
+            {/* Total Points */}
             <div className="bg-white rounded-xl border border-gray-200 p-6 flex-1">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                   <div className="w-5 h-5 bg-blue-600 rounded-full"></div>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-900">03</p>
-                  <p className="text-gray-600 text-sm">Total Point</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {loading ? "..." : stats.total_points}
+                  </p>
+                  <p className="text-gray-600 text-sm">Total Points</p>
                 </div>
               </div>
             </div>
 
+            {/* Current Rank */}
             <div className="bg-white rounded-xl border border-gray-200 p-6 flex-1">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                   <div className="w-5 h-5 bg-purple-600 rounded"></div>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-900">03</p>
-                  <p className="text-gray-600 text-sm">Current Level</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {loading ? "..." : stats.rank}
+                  </p>
+                  <p className="text-gray-600 text-sm">Current Rank</p>
                 </div>
               </div>
             </div>
