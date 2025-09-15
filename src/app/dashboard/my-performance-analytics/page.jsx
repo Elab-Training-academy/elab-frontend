@@ -1,11 +1,79 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Bell, Trophy, Clock, CheckCircle } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { useAuthStore } from '@/store/authStore';
 
 const Dashboard = () => {
   const [reportType, setReportType] = useState('Weekly');
+  const [courses, setCourses] = useState([]);
+  const [courseData, setCourseData] = useState({});
+  const { url } = useAuthStore();
 
+
+
+  useEffect(() => {
+      const fetchCourses = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          if (!token) return;
+  
+          const res = await fetch(`${url}/orders/ordered-courses`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!res.ok) throw new Error('Failed to fetch courses');
+          const data = await res.json();
+          console.log(data);
+          
+          const courseList = Array.isArray(data) ? data : data.courses || [];
+          setCourses(courseList);
+        } catch (err) {
+          console.error('Error fetching courses:', err);
+        }
+      };
+      fetchCourses();
+    }, [url]);
+
+
+
+    useEffect(() => {
+        const fetchCourseData = async () => {
+          if (courses.length === 0) return;
+          setLoading(true);
+          try {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+    
+            const coursesResults = {};
+            for (const course of courses) {
+              const courseId = course.course_id || course.id;
+              try {
+                const res = await fetch(
+                  `${url}/progress/courses/${courseId}/module-progress`,
+                  { headers: { Authorization: `Bearer ${token}` } }
+                );
+                if (res.ok) {
+                  const data = await res.json();
+                  console.log(data);
+                  
+                 coursesResults[courseId] = data;
+                } else {
+                  coursesResults[courseId] = null;
+                }
+              } catch {
+                coursesResults[courseId] = null;
+              }
+            }
+            setCourseData(coursesResults);
+          } catch (err) {
+            console.error('Error fetching readiness:', err);
+          } finally {
+            setLoading(false);
+          }
+        };
+        fetchCourseData();
+      }, [courses, url]);
+    
   // Sample data for the line chart
   const progressData = [
     { month: 'Jan', score1: 75, score2: -10 },

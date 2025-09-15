@@ -1,14 +1,99 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Search, Users, TrendingUp, ChevronRight, Bell } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 
 const Dashboard = () => {
   const { user, fetchUser } = useAuthStore();
+ 
 
   useEffect(() => {
     fetchUser?.();
   }, [fetchUser]);
+
+ const [coursesOrders, setCoursesOrders] = useState([]);
+  const { url } = useAuthStore();
+  const [selectedCourseId, setSelectedCourseId] = useState(null);
+  const [courseIds, setCourseIds] = useState([])
+  const [progress, setProgress] = useState([]);
+
+  // Fetch ordered courses
+ useEffect(() => {
+     const fetchCourses = async () => {
+       try {
+         const token = localStorage.getItem("token");
+         if (!token) {
+           console.error("No token found");
+           setCoursesOrders([]);
+           return;
+         }
+ 
+         const res = await fetch(
+           "https://elab-server-xg5r.onrender.com/orders/ordered-courses",
+           {
+             headers: { Authorization: `Bearer ${token}` },
+             
+           }
+         );
+ 
+        
+         if (!res.ok) {
+           console.error("Failed to fetch ordered courses:", res.status);
+           setCoursesOrders([]);
+           return;
+         }
+ 
+         const data = await res.json();
+         console.log(data);
+
+         let ids = [];
+
+         data.filter((d)=>{
+          ids.push(d.id)
+          setCourseIds(ids)
+         })
+  
+         setCoursesOrders(data);
+       } catch (error) {
+         console.error("Error fetching ordered courses:", error);
+         setCoursesOrders([]);
+       } finally {
+        //  setLoadingCourses(false);
+       }
+     };
+ 
+     fetchCourses();
+   }, []);
+
+  useEffect(() => {
+  courseIds.map(async(id)=>{
+    if (!courseIds || courseIds.length == 0) return; // wait until we have courseId
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `${url}/progress/courses/${id}/module-progress`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (res.ok) {
+        const data = await res.json();
+        setProgress(data);
+      } else {
+        console.error("Failed to fetch progress:", res.status);
+      }
+    } catch (error) {
+      console.error("Error fetching progress:", error);
+    }
+  })
+
+}, [courseIds, url]);
+
+    
+  
+
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -102,22 +187,19 @@ const Dashboard = () => {
         </div>
 
         {/* Performance Insight & Exam Readiness */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+        <div className="grid grid-cols-1 gap-6 mt-8">
           {/* Performance Insight */}
           <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Performance Insight</h2>
             <div className="space-y-4">
-              {[1, 2, 3, 4].map((item, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
-                >
+              {progress?.module_progress?.map((mod, index) => (
+                <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div>
-                    <h4 className="font-medium text-gray-900">Physiological Integrity</h4>
-                    <p className="text-sm text-gray-600">45 questions attempted</p>
+                    <h4 className="font-medium text-gray-900">{mod.module_name}</h4>
+                    <p className="text-sm text-gray-600">{mod.total_questions} questions attempted</p>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <span className="text-lg font-semibold text-gray-900">65%</span>
+                    <span className="text-lg font-semibold text-gray-900">{mod.completion_percentage}%</span>
                     <TrendingUp className="w-4 h-4 text-green-500" />
                   </div>
                 </div>
@@ -126,7 +208,7 @@ const Dashboard = () => {
           </div>
 
           {/* Exam Readiness */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          {/* <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-6">Exam Readiness</h3>
             <div className="flex items-center justify-center mb-6">
               <div className="relative w-32 h-32">
@@ -165,7 +247,7 @@ const Dashboard = () => {
               <span className="text-gray-700">View more</span>
               <ChevronRight className="w-4 h-4 text-gray-500" />
             </button>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
