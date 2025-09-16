@@ -34,7 +34,7 @@
 //   { name: "Course Management", href: "/elab-admin/courses", icon: BookOpen },
 //   { name: "User Management", href: "/elab-admin/users", icon: Users },
 //   { name: "Question Bank", href: "/elab-admin/questions", icon: HelpCircle },
-//   { name: "Categories", href: "/elab-admin/categories", icon: HelpCircle },
+//   
 //   { name: "Smart Practice", href: "/elab-admin/practice", icon: PlayCircle },
 //   { name: "Subscription management", href: "/elab-admin/subscription", icon: CreditCard },
 //   { name: "CAT Testing", href: "/elab-admin/cat-testing", icon: PlayCircle },
@@ -274,9 +274,11 @@ const adminLinks = [
   { name: "Overview", href: "/elab-admin", icon: LayoutDashboard },
   { name: "Course Management", href: "/elab-admin/courses", icon: BookOpen },
   { name: "Question Bank", href: "/elab-admin/questions", icon: HelpCircle },
+  { name: "Categories", href: "/elab-admin/categories", icon: HelpCircle },
   { name: "Smart Practice", href: "/elab-admin/practice", icon: PlayCircle },
   { name: "Case Studies", href: "/elab-admin/case-studies", icon: FileText },
   { name: "Flashcards", href: "/elab-admin/flashcards", icon: Layers },
+  { name: "Course category", href: "/elab-admin/course-category", icon: Layers },
   { name: "User Management", href: "/elab-admin/users", icon: Users },
   { name: "Subscription Management", href: "/elab-admin/subscription", icon: CreditCard },
   { name: "Analytics", href: "/elab-admin/analytics", icon: BarChart },
@@ -299,9 +301,11 @@ const staffLinks = [
   { name: "Overview", href: "/elab-admin", icon: LayoutDashboard },
   { name: "Course Management", href: "/elab-admin/courses", icon: BookOpen },
   { name: "Question Bank", href: "/elab-admin/questions", icon: HelpCircle },
+  { name: "Categories", href: "/elab-admin/categories", icon: HelpCircle },
   { name: "Smart Practice", href: "/elab-admin/practice", icon: PlayCircle },
   { name: "Case Studies", href: "/elab-admin/case-studies", icon: FileText },
   { name: "Flashcards", href: "/elab-admin/flashcards", icon: Layers },
+  { name: "Course category", href: "/elab-admin/course-category", icon: Layers },
 ];
 
 export default function Sidebar({ onClose }) {
