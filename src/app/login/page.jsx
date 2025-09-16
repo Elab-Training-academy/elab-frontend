@@ -45,6 +45,7 @@ const LoginPage = () => {
       });
 
       const data = await res.json();
+      
 if (res.ok) {
   toast.success("Login successful!");
 
