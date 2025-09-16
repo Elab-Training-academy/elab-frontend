@@ -17,13 +17,19 @@ import { useAuthStore } from '@/store/authStore';
 const Dashboard = () => {
   const [reportType, setReportType] = useState('daily');
   const [performance, setPerformance] = useState(null);
+  const [loading, setLoading] = useState(true);
   const { url } = useAuthStore();
 
   useEffect(() => {
     const fetchPerformance = async () => {
       try {
+        setLoading(true);
         const token = localStorage.getItem('token');
-        if (!token) return;
+        if (!token) {
+          setPerformance(null);
+          setLoading(false);
+          return;
+        }
 
         const res = await fetch(
           `${url}/progress/user-performance?time_frame=${reportType.toLowerCase()}`,
@@ -35,16 +41,26 @@ const Dashboard = () => {
         if (!res.ok) throw new Error('Failed to fetch performance data');
 
         const data = await res.json();
-        setPerformance(data);
+
+        // If response is empty object or missing main keys
+        if (!data || Object.keys(data).length === 0) {
+          setPerformance(null);
+        } else {
+          setPerformance(data);
+        }
       } catch (err) {
         console.error('Error fetching performance:', err);
+        setPerformance(null);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchPerformance();
   }, [url, reportType]);
 
-  if (!performance) {
+  // Loading state
+  if (loading) {
     return (
       <div className="p-6 text-center text-gray-500">
         Loading performance data...
@@ -52,6 +68,16 @@ const Dashboard = () => {
     );
   }
 
+  // No performance data
+  if (!performance) {
+    return (
+      <div className="p-6 text-center text-gray-500">
+        🚀 No performance analytics for your account yet.
+      </div>
+    );
+  }
+
+  // Prepare chart data
   const progressData =
     performance.progress_report?.map((item) => ({
       date: item.date,
@@ -68,7 +94,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 px-4 sm:px-6 py-6">
       {/* Header */}
-      <div className="flex md:flex-row items-center justify-between mb-8 gap-4">
+      <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
         <div className="relative w-full md:w-auto">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input
@@ -120,8 +146,7 @@ const Dashboard = () => {
             {performance.current_level}
           </div>
           <div className="text-sm text-gray-500 mb-3">
-            {performance.xp_to_next_level - performance.xp_progress} XP to next
-            level
+            {performance.xp_to_next_level - performance.xp_progress} XP to next level
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
@@ -149,7 +174,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Study Streaks */}
+        {/* Study Streak */}
         <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <span className="text-gray-600 font-medium">Study Streak</span>
@@ -181,22 +206,26 @@ const Dashboard = () => {
           <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-4">
             Progress Report
           </h3>
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={progressData}>
-                <XAxis dataKey="date" />
-                <YAxis domain={[0, 100]} />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="avg_score"
-                  stroke="#3b82f6"
-                  strokeWidth={3}
-                  dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          {progressData.length > 0 ? (
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={progressData}>
+                  <XAxis dataKey="date" />
+                  <YAxis domain={[0, 100]} />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="avg_score"
+                    stroke="#3b82f6"
+                    strokeWidth={3}
+                    dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="text-gray-500 text-sm">No progress data yet.</div>
+          )}
         </div>
 
         {/* Subject Breakdown Pie Chart */}
@@ -204,37 +233,43 @@ const Dashboard = () => {
           <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-4">
             Subjects Breakdown
           </h3>
-          <div className="h-64 w-full flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={90}
-                  paddingAngle={2}
-                  dataKey="value"
-                  label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {pieData.map((item, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: item.color }}
-                ></div>
-                <span className="text-xs text-gray-600 truncate">{item.name}</span>
+          {pieData.length > 0 ? (
+            <>
+              <div className="h-64 w-full flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={90}
+                      paddingAngle={2}
+                      dataKey="value"
+                      label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-            ))}
-          </div>
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {pieData.map((item, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: item.color }}
+                    ></div>
+                    <span className="text-xs text-gray-600 truncate">{item.name}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="text-gray-500 text-sm">No subject breakdown available.</div>
+          )}
         </div>
       </div>
 
@@ -243,26 +278,30 @@ const Dashboard = () => {
         <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-6">
           Achievements
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-          {performance.achievements?.map((ach, idx) => (
-            <div
-              key={idx}
-              className="bg-white p-4 md:p-6 rounded-xl border border-gray-200"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <Trophy className="w-5 h-5 text-green-600" />
-                </div>
-                <div>
-                  <div className="font-semibold text-gray-900">{ach.title}</div>
-                  <div className="text-sm text-gray-600">
-                    Earned on {new Date(ach.earned_on).toDateString()}
+        {performance.achievements?.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            {performance.achievements.map((ach, idx) => (
+              <div
+                key={idx}
+                className="bg-white p-4 md:p-6 rounded-xl border border-gray-200"
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <Trophy className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900">{ach.title}</div>
+                    <div className="text-sm text-gray-600">
+                      Earned on {new Date(ach.earned_on).toDateString()}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-gray-500 text-sm">No achievements yet.</div>
+        )}
       </div>
 
       {/* Recent Activities */}
@@ -270,24 +309,28 @@ const Dashboard = () => {
         <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-6">
           Recent Activities
         </h2>
-        <div className="space-y-3">
-          {performance.recent_activities?.map((act, idx) => (
-            <div
-              key={idx}
-              className="bg-white p-4 rounded-xl border border-gray-200 flex justify-between"
-            >
-              <div>
-                <div className="font-semibold text-gray-900 mb-1">
-                  {act.question}
+        {performance.recent_activities?.length > 0 ? (
+          <div className="space-y-3">
+            {performance.recent_activities.map((act, idx) => (
+              <div
+                key={idx}
+                className="bg-white p-4 rounded-xl border border-gray-200 flex justify-between"
+              >
+                <div>
+                  <div className="font-semibold text-gray-900 mb-1">
+                    {act.question}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {new Date(act.answered_at).toLocaleString()}
+                  </div>
                 </div>
-                <div className="text-sm text-gray-500">
-                  {new Date(act.answered_at).toLocaleString()}
-                </div>
+                <span className="text-blue-500 font-semibold">✓</span>
               </div>
-              <span className="text-blue-500 font-semibold">✓</span>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-gray-500 text-sm">No recent activities yet.</div>
+        )}
       </div>
     </div>
   );
