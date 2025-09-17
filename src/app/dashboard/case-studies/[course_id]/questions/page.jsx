@@ -238,10 +238,10 @@ export default function CaseStudyQuestions() {
 
             <p className="text-gray-700 mb-3">
               <span className="font-semibold text-blue-600">
-                Score: {stats.correct_answers}/{stats.total_questions} (
-                {stats.score}%)
+                Score: {stats.total_correct_answers}/{stats.total_questions_answered} (
+                {stats.accuracy_percentage}%)
               </span>{" "}
-              {stats.passed ? (
+              {stats.total_correct_answers ? (
                 <span className="text-green-600 font-medium">✅ Pass</span>
               ) : (
                 <span className="text-red-600 font-medium">❌ Fail</span>
@@ -251,7 +251,7 @@ export default function CaseStudyQuestions() {
             <p className="text-gray-700 mb-6">
               You Earned:{" "}
               <span className="font-semibold text-blue-600">
-                +{stats.points} points 👍
+                +{stats.correct_points} points 👍
               </span>
             </p>
 

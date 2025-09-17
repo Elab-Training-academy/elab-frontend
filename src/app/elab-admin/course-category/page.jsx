@@ -142,11 +142,10 @@ export default function CourseCategoriesPage() {
   };
 
 
-
-  const handleCreateCategory = async (payload) => {
+  const handleCreate = async (payload) => {
   const token = localStorage.getItem("token");
   try {
-    const res = await fetch(`${url}/categories`, {
+    const res = await fetch(`${url}/course-categories`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -167,7 +166,6 @@ export default function CourseCategoriesPage() {
     console.error("Error creating category:", err);
   }
 };
-
 
 
 
@@ -309,7 +307,7 @@ export default function CourseCategoriesPage() {
         <CreateCModal
           isOpen={showModal}
           onClose={() => setShowModal(false)}
-          onSubmit={handleCreateCategory}
+          onSubmit={handleCreate}
           courseId={courseId} // ✅ pass dynamically
         />
 
