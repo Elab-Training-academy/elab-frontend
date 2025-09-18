@@ -3,8 +3,11 @@
 
 import { useState } from "react";
 import { X, ChevronDown, User, Heart, Activity, Thermometer, BookOpen } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
+
 
 export default function AddCaseStudyModal({ isOpen, onClose }) {
+  const { url } = useAuthStore();
   const [formData, setFormData] = useState({
     caseStudyTitle: "",
     course: "",
@@ -30,10 +33,47 @@ export default function AddCaseStudyModal({ isOpen, onClose }) {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log("Case Study created:", formData);
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const formData = new FormData();
+    formData.append("caseStudyTitle", caseStudyTitle);
+    formData.append("course", course);
+    formData.append("difficulty", difficulty);
+    formData.append("medicalCategory", medicalCategory);
+    formData.append("caseDescription", caseDescription);
+    formData.append("patientName", patientName);
+    formData.append("patientsAge", patientsAge);
+    formData.append("chiefComplaint", chiefComplaint);
+    formData.append("bloodPressure", bloodPressure);
+    formData.append("heartRate", heartRate);
+    formData.append("respiratoryRate", respiratoryRate);
+    formData.append("oxygenRate", oxygenRate);
+    formData.append("temperature", temperature);
+    formData.append("medicalHistory", medicalHistory);
+   try {
+    const res = await fetch(`${url}/case-studies`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: formData
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      console.log(data);
+      console.log("Case Study created:", formData);
+      
+    } else{
+      console.error("❌ Failed to create case study:", res.status);
+
+    }
+   } catch (error) {
+    console.error("🚨 Error creating case study:", error);
+   }
     onClose();
   };
 
@@ -69,7 +109,7 @@ export default function AddCaseStudyModal({ isOpen, onClose }) {
                 <input
                   type="text"
                   name="caseStudyTitle"
-                  value={formData.caseStudyTitle}
+                  value={caseStudyTitle}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter case study title"

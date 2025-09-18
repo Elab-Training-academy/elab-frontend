@@ -85,6 +85,8 @@ const NCLEXCourseDashboard = () => {
         }
 
         const data = await res.json();
+        console.log(data);
+        
 
         // Convert to dictionary {courseId: progressPercent}
         const progressMap = {};

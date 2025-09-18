@@ -63,7 +63,7 @@ const handleCreateAccount = async (e) => {
     }, 2000);
 
   } catch (error) {
-    toast.error(error.message);
+    toast.error(error.detail);
   } finally {
     setCreate(false);
   }
