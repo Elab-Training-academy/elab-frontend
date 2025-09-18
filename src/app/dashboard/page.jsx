@@ -14,7 +14,7 @@ const Dashboard = () => {
 
   // Fetch logged-in user
   useEffect(() => {
-    fetchUser?.();
+    fetchStats();
   }, [fetchUser]);
 
   // Fetch ordered courses
@@ -110,7 +110,7 @@ const Dashboard = () => {
           <Bell className="w-6 h-6 text-gray-600" />
         </div>
 
-        {/* Welcome Section */}
+           {/* Welcome Section */}
         <div className="mb-8">
           <p className="text-gray-600 mb-2">Welcome back,</p>
           <h1 className="text-4xl font-bold text-gray-900 mb-6">
