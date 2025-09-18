@@ -14,12 +14,12 @@ export default function CaseStudyDetail() {
     if (!id) return;
 
     const fetchCaseStudy = async () => {
-        const token = localStorage.getItem("token");
-        if(!token) return;
-        
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
       try {
         const res = await fetch(`https://elab-server-xg5r.onrender.com/case-studies`, {
-            headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
         const found = data.find((cs) => cs.id === id);
@@ -37,7 +37,7 @@ export default function CaseStudyDetail() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="animate-spin text-gray-500" size={32} />
+        <Loader2 className="animate-spin text-gray-500" size={36} />
       </div>
     );
   }
@@ -51,81 +51,87 @@ export default function CaseStudyDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
       {/* Back Button */}
       <Link
         href="/elab-admin/case-studies"
-        className="flex items-center gap-2 text-blue-600 mb-6"
+        className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors mb-6"
       >
-        <ArrowLeft size={18} /> Back to Case Studies
+        <ArrowLeft size={18} /> <span className="font-medium">Back to Case Studies</span>
       </Link>
 
-      <div className="bg-white shadow rounded-lg p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+      <div className="bg-white shadow-md rounded-xl p-6 sm:p-8">
+        {/* Title & Description */}
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
           {caseStudy.title}
         </h1>
-        <p className="text-gray-600 mb-4">{caseStudy.description}</p>
+        <p className="text-gray-600 mb-6">{caseStudy.description}</p>
 
         {/* Patient Info */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div>
-            <p className="font-medium">Patient Name:</p>
-            <p className="text-gray-700">{caseStudy.patient_name}</p>
-          </div>
-          <div>
-            <p className="font-medium">Age:</p>
-            <p className="text-gray-700">{caseStudy.patient_age}</p>
-          </div>
-          <div>
-            <p className="font-medium">Chief Complaint:</p>
-            <p className="text-gray-700">{caseStudy.chief_complaint}</p>
-          </div>
-          <div>
-            <p className="font-medium">Difficulty:</p>
-            <p className="text-gray-700">{caseStudy.difficulty}</p>
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold text-gray-800 mb-3">Patient Info</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <InfoCard label="Patient Name" value={caseStudy.patient_name} />
+            <InfoCard label="Age" value={caseStudy.patient_age} />
+            <InfoCard label="Chief Complaint" value={caseStudy.chief_complaint} />
+            <InfoCard label="Difficulty" value={caseStudy.difficulty} />
           </div>
         </div>
 
         {/* Vitals */}
-        <h2 className="text-lg font-semibold mb-2">Patient Vitals</h2>
-        <ul className="grid grid-cols-2 gap-3 mb-6">
-          <li>Blood Pressure: {caseStudy.blood_pressure}</li>
-          <li>Heart Rate: {caseStudy.heart_rate}</li>
-          <li>Respiratory Rate: {caseStudy.respiratory_rate}</li>
-          <li>Oxygen Rate: {caseStudy.oxygen_rate}</li>
-          <li>Temperature: {caseStudy.temperature}</li>
-        </ul>
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold text-gray-800 mb-3">Patient Vitals</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <InfoCard label="Blood Pressure" value={caseStudy.blood_pressure} />
+            <InfoCard label="Heart Rate" value={caseStudy.heart_rate} />
+            <InfoCard label="Respiratory Rate" value={caseStudy.respiratory_rate} />
+            <InfoCard label="Oxygen Rate" value={caseStudy.oxygen_rate} />
+            <InfoCard label="Temperature" value={caseStudy.temperature} />
+          </div>
+        </div>
 
         {/* Question & Options */}
-        <h2 className="text-lg font-semibold mb-2">Question</h2>
-        <p className="mb-4">{caseStudy.questions}</p>
-        <ul className="space-y-2">
-          {caseStudy.cs_answer_options.map((opt, idx) => (
-            <li
-              key={idx}
-              className={`p-2 rounded border ${
-                opt.is_correct
-                  ? "border-green-500 bg-green-50"
-                  : "border-gray-200"
-              }`}
-            >
-              {opt.options}
-            </li>
-          ))}
-        </ul>
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold text-gray-800 mb-3">Question</h2>
+          <p className="mb-4 text-gray-700">{caseStudy.questions}</p>
+          <ul className="space-y-3">
+            {caseStudy.cs_answer_options.map((opt, idx) => (
+              <li
+                key={idx}
+                className={`p-3 rounded-lg border transition ${
+                  opt.is_correct
+                    ? "border-green-500 bg-green-50 text-green-800 font-medium"
+                    : "border-gray-200 bg-gray-50 hover:bg-gray-100"
+                }`}
+              >
+                {opt.options}
+              </li>
+            ))}
+          </ul>
+        </div>
 
         {/* Reason */}
-        <div className="mt-6">
-          <h2 className="text-lg font-semibold mb-2">Reason</h2>
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-2">Reason</h2>
           <p className="text-gray-700">{caseStudy.reason}</p>
         </div>
 
         {/* Points */}
-        <div className="mt-4">
-          <span className="font-medium">Points:</span>{" "}
-          <span className="text-blue-600 font-bold">{caseStudy.points}</span>
+        <div className="flex items-center gap-2">
+          <span className="font-medium text-gray-800">Points:</span>
+          <span className="text-blue-600 font-bold text-lg">{caseStudy.points}</span>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* Small reusable component */
+function InfoCard({ label, value }) {
+  return (
+    <div className="p-4 border rounded-lg bg-gray-50 hover:bg-gray-100 transition">
+      <p className="text-sm text-gray-500">{label}</p>
+      <p className="font-medium text-gray-800">{value || "N/A"}</p>
     </div>
   );
 }

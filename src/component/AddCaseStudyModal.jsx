@@ -1,18 +1,42 @@
-// app/components/AddCaseStudyModal.jsx
 "use client";
 
-import { useState } from "react";
-import { X, ChevronDown, User, Heart, Activity, Thermometer, BookOpen } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  X,
+  BookOpen,
+  User,
+  Activity,
+  Plus,
+  Trash2,
+  CheckCircle,
+  HelpCircle,
+} from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
-
 
 export default function AddCaseStudyModal({ isOpen, onClose }) {
   const { url } = useAuthStore();
+  const fetchAllCourses = useAuthStore((state) => state.fetchAllCourses);
+  const newToken = useAuthStore((state) => state.token);
+  const setToken = useAuthStore((state) => state.setToken);
+  const courses = useAuthStore((state) => state.courses);
+
+  useEffect(() => {
+    if (!newToken && localStorage.getItem("token")) {
+      setToken(localStorage.getItem("token"));
+    }
+  }, [newToken, setToken]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchAllCourses();
+    }
+  }, [isOpen, fetchAllCourses]);
+
   const [formData, setFormData] = useState({
     caseStudyTitle: "",
     course: "",
     difficulty: "Easy",
-    medicalCategory: "All Category",
+    medicalCategory: "",
     caseDescription: "",
     patientName: "",
     patientsAge: "",
@@ -22,15 +46,78 @@ export default function AddCaseStudyModal({ isOpen, onClose }) {
     respiratoryRate: "",
     oxygenRate: "",
     temperature: "",
-    medicalHistory: ""
+    medicalHistory: "",
+    question: "",
+    cs_answer_options: [
+      { options: "", is_correct: false },
+      { options: "", is_correct: false },
+    ],
   });
+
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    if (!formData.course) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch(`${url}/course-categories`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) throw new Error("Failed to fetch categories");
+
+        const data = await res.json();
+        const filtered = data.filter((cat) => cat.course_id === formData.course);
+        setCategories(filtered);
+      } catch (err) {
+        console.error("Failed to load categories:", err);
+        setCategories([]);
+      }
+    };
+
+    fetchCategories();
+  }, [formData.course, url]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
+  };
+
+  // ✅ Answer options handlers
+  const handleOptionChange = (index, value) => {
+    const newOptions = [...formData.cs_answer_options];
+    newOptions[index].options = value;
+    setFormData((prev) => ({ ...prev, cs_answer_options: newOptions }));
+  };
+
+  const handleSetCorrect = (index) => {
+    const newOptions = formData.cs_answer_options.map((opt, i) => ({
+      ...opt,
+      is_correct: i === index,
+    }));
+    setFormData((prev) => ({ ...prev, cs_answer_options: newOptions }));
+  };
+
+  const handleAddOption = () => {
+    setFormData((prev) => ({
+      ...prev,
+      cs_answer_options: [
+        ...prev.cs_answer_options,
+        { options: "", is_correct: false },
+      ],
+    }));
+  };
+
+  const handleRemoveOption = (index) => {
+    const newOptions = formData.cs_answer_options.filter((_, i) => i !== index);
+    setFormData((prev) => ({ ...prev, cs_answer_options: newOptions }));
   };
 
   const handleSubmit = async (e) => {
@@ -38,43 +125,49 @@ export default function AddCaseStudyModal({ isOpen, onClose }) {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    const formData = new FormData();
-    formData.append("caseStudyTitle", caseStudyTitle);
-    formData.append("course", course);
-    formData.append("difficulty", difficulty);
-    formData.append("medicalCategory", medicalCategory);
-    formData.append("caseDescription", caseDescription);
-    formData.append("patientName", patientName);
-    formData.append("patientsAge", patientsAge);
-    formData.append("chiefComplaint", chiefComplaint);
-    formData.append("bloodPressure", bloodPressure);
-    formData.append("heartRate", heartRate);
-    formData.append("respiratoryRate", respiratoryRate);
-    formData.append("oxygenRate", oxygenRate);
-    formData.append("temperature", temperature);
-    formData.append("medicalHistory", medicalHistory);
-   try {
-    const res = await fetch(`${url}/case-studies`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      body: formData
-    });
+    const payload = {
+      title: formData.caseStudyTitle,
+      difficulty: formData.difficulty,
+      course_id: formData.course,
+      course_category_id: formData.medicalCategory,
+      description: formData.caseDescription,
+      patient_name: formData.patientName,
+      patient_age: parseInt(formData.patientsAge, 10) || 0,
+      chief_complaint: formData.chiefComplaint,
+      blood_pressure: formData.bloodPressure,
+      heart_rate: formData.heartRate,
+      respiratory_rate: formData.respiratoryRate,
+      oxygen_rate: formData.oxygenRate,
+      temperature: formData.temperature,
+      medical_history: formData.medicalHistory,
+      questions: formData.question, // ✅ user-provided question
+      points: 10,
+      reason: "The reason for the correct answer goes here",
+      cs_answer_options: formData.cs_answer_options,
+    };
 
-    if (res.ok) {
-      const data = await res.json();
-      console.log(data);
-      console.log("Case Study created:", formData);
-      
-    } else{
-      console.error("❌ Failed to create case study:", res.status);
+    try {
+      const res = await fetch(`${url}/case-studies`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
 
+      if (res.ok) {
+        const data = await res.json();
+        console.log("✅ Case Study created:", data);
+        onClose();
+      } else {
+        const err = await res.json();
+        console.error("❌ Failed to create case study:", err);
+        alert(err.message || "Failed to create case study");
+      }
+    } catch (error) {
+      console.error("🚨 Error creating case study:", error);
     }
-   } catch (error) {
-    console.error("🚨 Error creating case study:", error);
-   }
-    onClose();
   };
 
   if (!isOpen) return null;
@@ -82,282 +175,262 @@ export default function AddCaseStudyModal({ isOpen, onClose }) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        {/* Modal Header */}
+        {/* Header */}
         <div className="flex items-center justify-between p-4 md:p-6 border-b">
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900">Case Study Management</h2>
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+            Case Study Management
+          </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-full"
           >
             <X size={24} />
           </button>
         </div>
 
-        {/* Modal Content */}
-        <form onSubmit={handleSubmit} className="p-4 md:p-6">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-4 md:p-6 space-y-6">
           {/* Basic Information */}
-          <div className="mb-6">
+          <div>
             <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
               <BookOpen size={18} className="mr-2" /> Basic Information
             </h3>
-            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Case Study Title
-                </label>
-                <input
-                  type="text"
-                  name="caseStudyTitle"
-                  value={caseStudyTitle}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter case study title"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Course
-                </label>
-                <div className="relative">
-                  <select
-                    name="course"
-                    value={formData.course}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-8"
-                    required
-                  >
-                    <option value="">Select Course</option>
-                    <option value="medicine">Medicine</option>
-                    <option value="surgery">Surgery</option>
-                    <option value="pediatrics">Pediatrics</option>
-                    <option value="emergency">Emergency Medicine</option>
-                  </select>
-                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-                </div>
-              </div>
+              <input
+                type="text"
+                name="caseStudyTitle"
+                value={formData.caseStudyTitle}
+                onChange={handleInputChange}
+                placeholder="Case Study Title"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                required
+              />
+              <select
+                name="course"
+                value={formData.course}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                required
+              >
+                <option value="">Select Course</option>
+                {courses.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.title || c.name}
+                  </option>
+                ))}
+              </select>
             </div>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Difficulty Level
-                </label>
-                <div className="relative">
-                  <select
-                    name="difficulty"
-                    value={formData.difficulty}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-8"
-                  >
-                    <option value="Easy">Easy</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Hard">Hard</option>
-                    <option value="Expert">Expert</option>
-                  </select>
-                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Medical Category
-                </label>
-                <div className="relative">
-                  <select
-                    name="medicalCategory"
-                    value={formData.medicalCategory}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-8"
-                  >
-                    <option value="All Category">All Category</option>
-                    <option value="Cardiology">Cardiology</option>
-                    <option value="Neurology">Neurology</option>
-                    <option value="Pulmonology">Pulmonology</option>
-                    <option value="Gastroenterology">Gastroenterology</option>
-                  </select>
-                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-                </div>
-              </div>
-            </div>
+          {/* Difficulty & Category */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <select
+              name="difficulty"
+              value={formData.difficulty}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            >
+              <option value="Easy">Easy</option>
+              <option value="Medium">Medium</option>
+              <option value="Hard">Hard</option>
+              <option value="Expert">Expert</option>
+            </select>
+            <select
+              name="medicalCategory"
+              value={formData.medicalCategory}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              required
+            >
+              <option value="">Select Category</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name || cat.title}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Case Description */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Case Description</h3>
-            <textarea
-              name="caseDescription"
-              value={formData.caseDescription}
-              onChange={handleInputChange}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Provide a brief description of the case study"
-              required
-            />
-          </div>
+          <textarea
+            name="caseDescription"
+            value={formData.caseDescription}
+            onChange={handleInputChange}
+            rows={3}
+            placeholder="Case Description"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            required
+          />
 
           {/* Patient Information */}
-          <div className="mb-6">
+          <div>
             <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
               <User size={18} className="mr-2" /> Patient Information
             </h3>
-            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Patient Name
-                </label>
-                <input
-                  type="text"
-                  name="patientName"
-                  value={formData.patientName}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., Ibrahim Ahmad"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Chief Complaint
-                </label>
-                <input
-                  type="text"
-                  name="chiefComplaint"
-                  value={formData.chiefComplaint}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., chest pain"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Patient's Age
-              </label>
+              <input
+                type="text"
+                name="patientName"
+                value={formData.patientName}
+                onChange={handleInputChange}
+                placeholder="Patient Name"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                required
+              />
               <input
                 type="text"
                 name="patientsAge"
                 value={formData.patientsAge}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., 45 years old"
+                placeholder="Age"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 required
               />
             </div>
+            <input
+              type="text"
+              name="chiefComplaint"
+              value={formData.chiefComplaint}
+              onChange={handleInputChange}
+              placeholder="Chief Complaint"
+              className="w-full mt-4 px-3 py-2 border border-gray-300 rounded-lg"
+              required
+            />
           </div>
 
-          {/* Patient's Vital Signs */}
-          <div className="mb-6">
+          {/* Vitals */}
+          <div>
             <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-              <Activity size={18} className="mr-2" /> Patient's Vital Signs
+              <Activity size={18} className="mr-2" /> Vital Signs
             </h3>
-            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Blood Pressure
-                </label>
-                <input
-                  type="text"
-                  name="bloodPressure"
-                  value={formData.bloodPressure}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., 120/80"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                  <Heart size={16} className="mr-2" /> Heart Rate
-                </label>
-                <input
-                  type="text"
-                  name="heartRate"
-                  value={formData.heartRate}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., 72 bpm"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Respiratory Rate
-                </label>
-                <input
-                  type="text"
-                  name="respiratoryRate"
-                  value={formData.respiratoryRate}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., 16 breath/min"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Oxygen Rate
-                </label>
-                <input
-                  type="text"
-                  name="oxygenRate"
-                  value={formData.oxygenRate}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., 98% on room air"
-                />
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                <Thermometer size={16} className="mr-2" /> Temperature
-              </label>
+              <input
+                type="text"
+                name="bloodPressure"
+                value={formData.bloodPressure}
+                onChange={handleInputChange}
+                placeholder="Blood Pressure"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              />
+              <input
+                type="text"
+                name="heartRate"
+                value={formData.heartRate}
+                onChange={handleInputChange}
+                placeholder="Heart Rate"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              />
+              <input
+                type="text"
+                name="respiratoryRate"
+                value={formData.respiratoryRate}
+                onChange={handleInputChange}
+                placeholder="Respiratory Rate"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              />
+              <input
+                type="text"
+                name="oxygenRate"
+                value={formData.oxygenRate}
+                onChange={handleInputChange}
+                placeholder="Oxygen Rate"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              />
               <input
                 type="text"
                 name="temperature"
                 value={formData.temperature}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., 98.6°F"
+                placeholder="Temperature"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
             </div>
           </div>
 
           {/* Medical History */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Medical History</h3>
+          <textarea
+            name="medicalHistory"
+            value={formData.medicalHistory}
+            onChange={handleInputChange}
+            rows={3}
+            placeholder="Medical History"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+          />
+
+          {/* ✅ Question */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <HelpCircle size={18} className="mr-2" /> Question
+            </h3>
             <textarea
-              name="medicalHistory"
-              value={formData.medicalHistory}
+              name="question"
+              value={formData.question}
               onChange={handleInputChange}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Patient's relevant medical history"
+              placeholder="Enter the question for students"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              required
             />
           </div>
 
-          {/* Submit Button */}
-          <div className="flex justify-end">
+          {/* ✅ Answer Options */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Answer Options
+            </h3>
+            {formData.cs_answer_options.map((opt, index) => (
+              <div key={index} className="flex items-center gap-2 mb-2">
+                <input
+                  type="text"
+                  value={opt.options}
+                  onChange={(e) => handleOptionChange(index, e.target.value)}
+                  placeholder={`Option ${index + 1}`}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => handleSetCorrect(index)}
+                  className={`px-3 py-2 rounded-lg flex items-center gap-1 ${
+                    opt.is_correct
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-200 text-gray-700"
+                  }`}
+                >
+                  <CheckCircle size={16} />
+                  {opt.is_correct ? "Correct" : "Set Correct"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveOption(index)}
+                  disabled={formData.cs_answer_options.length <= 2}
+                  className="p-2 text-red-600 hover:bg-red-100 rounded-lg"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={handleAddOption}
+              className="mt-2 flex items-center gap-1 text-blue-600 hover:underline"
+            >
+              <Plus size={16} /> Add Option
+            </button>
+          </div>
+
+          {/* Actions */}
+          <div className="flex justify-end mt-6">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg mr-3 hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 border border-gray-300 rounded-lg mr-3"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors"
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               Save Case Study
             </button>
