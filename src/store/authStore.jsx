@@ -132,19 +132,26 @@ export const useAuthStore = create((set, get) => ({
       });
 
       if (!res.ok) {
-        console.error("Failed to fetch user", res.status);
-        set({ user: null, role: null });
-        return;
+        if (res.status === 401) {
+          // Unauthorized, token might be invalid
+          localStorage.removeItem("token");
+          localStorage.removeItem("role");
+          set({ token: null, user: null, role: null });
+          alert("Session expired. Please log in again.");
+          toast.warn("Session expired. Please log in again.");
+          return window.location.href = "/login";
+        }
+        const err = await res.json();
+        alert(err.detail || "Failed to fetch user. Please log in again.");
+        throw new Error(err.detail || "Failed to fetch user");
+        
       }
 
       const data = await res.json();
       console.log("Fetched user:", data);
-
-      // ✅ Assume API returns { id, name, email, role }
-
+      
       const role =
     (data.role || data.user?.role || data.data?.role || "").toLowerCase();
-      console.log("Extracted role:", role);
 
       localStorage.setItem("role", role);
       set({ user: data, role: data.role });
@@ -222,7 +229,19 @@ export const useAuthStore = create((set, get) => ({
     const res = await fetch(`${url}/users/profile`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (!res.ok) return set({ profile: null });
+    if (!res.ok){
+      if (res.status === 401) {
+        // Unauthorized, token might be invalid
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        set({ token: null, user: null, role: null });
+        alert("Session expired. Please log in again.");
+        toast.warn("Session expired. Please log in again.");
+        return window.location.href = "/login";
+      }
+      throw new Error("Failed to fetch profile");
+      
+    }
     set({ profile: await res.json() });
   } catch (err) {
     console.error("Error fetching profile:", err);
