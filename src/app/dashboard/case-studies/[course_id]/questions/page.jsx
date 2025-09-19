@@ -89,14 +89,13 @@ export default function CaseStudyQuestions() {
         });
       }
 
-      setLoadingSubmit(false);
-
+      
       // Submit review
       await fetch(`${url}/case-studies/${course_id}/reviews`, {
         method: "GET", 
         headers: { Authorization: `Bearer ${token}` },
       });
-
+      
       // Fetch stats
       const statsRes = await fetch(
         `${url}/case-studies/user/${course_id}/case-study-stats`,
@@ -104,13 +103,14 @@ export default function CaseStudyQuestions() {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-
+      
       if (!statsRes.ok) throw new Error("Failed to fetch stats");
-
+      
       const statsData = await statsRes.json();
       setStats(statsData);
       setShowConfirmModal(false);
       setShowResultModal(true);
+      setLoadingSubmit(false);
 
       toast.success("Case study submitted successfully!", {
         position: "top-right",
@@ -256,14 +256,14 @@ export default function CaseStudyQuestions() {
             </p>
 
             <div className="flex flex-col gap-3">
-              <button
+              {/* <button
                 className="w-full py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition"
                 // onClick={() =>
                 //   router.push(`/dashboard/case-studies/${course_id}/review`)
                 // }
               >
                 Review Case Studies Answers →
-              </button>
+              </button> */}
               <button
                 className="w-full py-3 rounded-lg border border-gray-400 text-gray-600 hover:bg-gray-100"
                 onClick={() => router.push("/dashboard/case-studies")}

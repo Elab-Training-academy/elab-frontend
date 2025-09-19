@@ -54,12 +54,13 @@ const ExamReadinessDashboard = () => {
   const [courses, setCourses] = useState([]);
   const [readinessData, setReadinessData] = useState({});
   const [loading, setLoading] = useState(true);
-  const { url } = useAuthStore();
+  const { url, user, fetchUser } = useAuthStore();
 
   // ✅ Fetch ordered courses
   useEffect(() => {
     const fetchCourses = async () => {
       try {
+        fetchUser();
         const token = localStorage.getItem('token');
         if (!token) return;
 
@@ -75,7 +76,7 @@ const ExamReadinessDashboard = () => {
       }
     };
     fetchCourses();
-  }, [url]);
+  }, [url, fetchUser, user ]);
 
   // ✅ Fetch readiness data
   useEffect(() => {

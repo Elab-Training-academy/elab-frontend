@@ -8,9 +8,10 @@ import {
   Bell,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
+import { toast } from "react-toastify";
 
 const Leaderboard = () => {
-  const { url } = useAuthStore();
+  const { url, user, fetchUser } = useAuthStore();
   const [activeTab, setActiveTab] = useState("all_time");
   const [leaderboardData, setLeaderboardData] = useState([]);
   const [userRank, setUserRank] = useState(null);
@@ -21,6 +22,7 @@ const Leaderboard = () => {
   const timeFrames = ["daily", "weekly", "monthly", "all_time"];
 
   useEffect(() => {
+    fetchUser();
     if (typeof window !== "undefined") {
       const savedToken = localStorage.getItem("token");
       setToken(savedToken);
