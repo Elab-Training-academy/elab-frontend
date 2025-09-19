@@ -14,7 +14,7 @@ const Dashboard = () => {
 
   // Fetch logged-in user
   useEffect(() => {
-    fetchStats();
+    // fetchStats();
   }, [fetchUser]);
 
   // Fetch ordered courses
