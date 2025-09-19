@@ -13,12 +13,14 @@ const AIStudyCompanionPage = () => {
   const fileInputRef = useRef(null);
   const messagesEndRef  = useRef(null);
 
-  const { messages, sendChat, loading } = useAuthStore();
+  const { messages, sendChat, loading, user, fetchUser} = useAuthStore();
 
   // Auto-scroll to latest message
   useEffect(() => {
+    fetchUser();
+    
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
+  }, [messages, loading, fetchUser, user]);
 
   const handleSend = async () => {
     if (!input.trim() && !file) return;

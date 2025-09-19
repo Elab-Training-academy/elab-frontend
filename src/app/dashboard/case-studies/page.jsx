@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 export default function CaseStudiesPage() {
   const [courses, setCourses] = useState([]);
@@ -18,6 +19,7 @@ export default function CaseStudiesPage() {
   const [caseStudy, setCaseStudy] = useState(null);
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [loadingCaseStudy, setLoadingCaseStudy] = useState(false);
+  const { user, fetchUser } = useAuthStore();
 
   const url = useAuthStore((state) => state.url);
   const router = useRouter();
@@ -26,6 +28,9 @@ export default function CaseStudiesPage() {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
+
+        fetchUser();
+
         const token = localStorage.getItem("token");
         if (!token) return;
 
@@ -49,7 +54,7 @@ export default function CaseStudiesPage() {
     };
 
     fetchCourses();
-  }, [url]);
+  }, [url, fetchUser, user]);
 
   // ✅ Fetch case study when a course is selected
   useEffect(() => {
