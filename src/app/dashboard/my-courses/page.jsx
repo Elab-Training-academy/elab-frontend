@@ -79,7 +79,8 @@ const NCLEXCourseDashboard = () => {
         
 
         if (!res.ok) {
-          console.error("Failed to fetch course progress:", res.status);
+          const err = await res.json();
+          console.log(err);
           setProgressData({});
           return;
         }
