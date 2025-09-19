@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import {
   X,
   BookOpen,
@@ -13,12 +14,13 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 
-export default function AddCaseStudyModal({ isOpen, onClose }) {
+export default function AddCaseStudyModal({ isOpen, onClose, onCreated }) {
   const { url } = useAuthStore();
   const fetchAllCourses = useAuthStore((state) => state.fetchAllCourses);
   const newToken = useAuthStore((state) => state.token);
   const setToken = useAuthStore((state) => state.setToken);
   const courses = useAuthStore((state) => state.courses);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!newToken && localStorage.getItem("token")) {
@@ -48,6 +50,7 @@ export default function AddCaseStudyModal({ isOpen, onClose }) {
     temperature: "",
     medicalHistory: "",
     question: "",
+    reason: "",
     cs_answer_options: [
       { options: "", is_correct: false },
       { options: "", is_correct: false },
@@ -125,6 +128,8 @@ export default function AddCaseStudyModal({ isOpen, onClose }) {
     const token = localStorage.getItem("token");
     if (!token) return;
 
+    setLoading(true);
+
     const payload = {
       title: formData.caseStudyTitle,
       difficulty: formData.difficulty,
@@ -142,7 +147,7 @@ export default function AddCaseStudyModal({ isOpen, onClose }) {
       medical_history: formData.medicalHistory,
       questions: formData.question, // ✅ user-provided question
       points: 10,
-      reason: "The reason for the correct answer goes here",
+      reason: formData.reason,
       cs_answer_options: formData.cs_answer_options,
     };
 
@@ -158,15 +163,18 @@ export default function AddCaseStudyModal({ isOpen, onClose }) {
 
       if (res.ok) {
         const data = await res.json();
-        console.log("✅ Case Study created:", data);
+        toast.success("✅ Case Study created successfully!");
+        if (onCreated) onCreated(data); // ✅ trigger refresh in parent
         onClose();
       } else {
         const err = await res.json();
-        console.error("❌ Failed to create case study:", err);
-        alert(err.message || "Failed to create case study");
+        toast.error(err.message || "❌ Failed to create case study");
       }
     } catch (error) {
-      console.error("🚨 Error creating case study:", error);
+      toast.error("🚨 Error creating case study");
+      console.error(error);
+    } finally {
+      setLoading(false); // ✅ stop loading
     }
   };
 
@@ -229,12 +237,14 @@ export default function AddCaseStudyModal({ isOpen, onClose }) {
               value={formData.difficulty}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              required
             >
+              <option value="">Select Difficulty</option>
               <option value="Easy">Easy</option>
-              <option value="Medium">Medium</option>
-              <option value="Hard">Hard</option>
-              <option value="Expert">Expert</option>
+              <option value="Intermediate">Intermediate</option>
+              <option value="Advanced">Advanced</option>
             </select>
+
             <select
               name="medicalCategory"
               value={formData.medicalCategory}
@@ -371,6 +381,15 @@ export default function AddCaseStudyModal({ isOpen, onClose }) {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               required
             />
+
+            <input
+                type="text"
+                name="reason"
+                value={formData.reason}
+                onChange={handleInputChange}
+                placeholder="reason"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              />
           </div>
 
           {/* ✅ Answer Options */}
@@ -430,9 +449,12 @@ export default function AddCaseStudyModal({ isOpen, onClose }) {
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              disabled={loading}
+              className={`px-6 py-2 rounded-lg text-white ${
+                loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+              }`}
             >
-              Save Case Study
+              {loading ? "Saving..." : "Save Case Study"}
             </button>
           </div>
         </form>

@@ -12,7 +12,9 @@ import {
 } from "lucide-react";
 import AddCaseStudyModal from "../../../component/AddCaseStudyModal";
 import UpdateCaseStudyModal from "../../../component/admin-modal/UpdateCaseStudyModal";
+import DeleteConfirmModal from "../../../component/admin-modal/DeleteConfirmModal";
 import Link from "next/link";
+import { toast } from "react-toastify";
 
 export default function CaseStudies() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -22,6 +24,8 @@ export default function CaseStudies() {
   const [selectedCaseStudy, setSelectedCaseStudy] = useState(null);
   const [caseStudies, setCaseStudies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [caseToDelete, setCaseToDelete] = useState(null);
 
   // Stats
   const [stats, setStats] = useState({
@@ -55,28 +59,39 @@ export default function CaseStudies() {
       }
     };
 
+    // ✅ Add callback
+    
     fetchCaseStudies();
   }, []);
+  
+  const handleCreated = (newCaseStudy) => {
+    setCaseStudies((prev) => [newCaseStudy, ...prev]); // update instantly
+  };
+
+
 
   // Delete case study
-  const handleDelete = async (id) => {
+ const handleDelete = async () => {
+    if (!caseToDelete) return;
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    if (!confirm("Are you sure you want to delete this case study?")) return;
-
     try {
-      await fetch(`https://elab-server-xg5r.onrender.com/case-studies/${id}`, {
+      await fetch(`https://elab-server-xg5r.onrender.com/case-studies/${caseToDelete.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setCaseStudies(caseStudies.filter((cs) => cs.id !== id));
+      setCaseStudies((prev) => prev.filter((cs) => cs.id !== caseToDelete.id));
+      setIsDeleteModalOpen(false);
+      setCaseToDelete(null);
+      toast.success("Case study deleted successfully");
     } catch (err) {
       console.error("Error deleting case study:", err);
-      alert("Failed to delete case study");
+      toast.error("Failed to delete case study");
     }
   };
+
 
   // Update handler after modal
   const handleUpdated = (updated) => {
@@ -141,8 +156,8 @@ export default function CaseStudies() {
           >
             <option>All Difficulty</option>
             <option>Easy</option>
-            <option>Medium</option>
-            <option>Hard</option>
+            <option>Intermediate</option>
+            <option>Advanced</option>
           </select>
         </div>
 
@@ -188,7 +203,10 @@ export default function CaseStudies() {
                         <Pencil size={14} /> Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(cs.id)}
+                        onClick={() => {
+                          setCaseToDelete(cs);
+                          setIsDeleteModalOpen(true);
+                        }}
                         className="text-red-600 hover:underline flex items-center gap-1"
                       >
                         <Trash2 size={14} /> Delete
@@ -202,7 +220,11 @@ export default function CaseStudies() {
         </div>
 
         {/* Add Modal */}
-        <AddCaseStudyModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+        <AddCaseStudyModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onCreated={handleCreated}
+        />
 
         {/* Update Modal */}
         <UpdateCaseStudyModal
@@ -210,6 +232,14 @@ export default function CaseStudies() {
           onClose={() => setIsUpdateModalOpen(false)}
           caseStudy={selectedCaseStudy}
           onUpdated={handleUpdated}
+        />
+
+        {/* Delete Confirmation Modal */}
+        <DeleteConfirmModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={handleDelete}
+          caseStudy={caseToDelete}
         />
       </div>
     </div>
