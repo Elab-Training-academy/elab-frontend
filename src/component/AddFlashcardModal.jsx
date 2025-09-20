@@ -4,17 +4,16 @@
 import { useState } from "react";
 import { X, ChevronDown, BookOpen, FileText } from "lucide-react";
 
-export default function AddFlashcardModal({ isOpen, onClose }) {
+export default function AddFlashcardModal({ isOpen, onClose, onFlashcardAdded }) {
   const [formData, setFormData] = useState({
-    category: "",
-    caseStudyTitle: "",
-    course: "",
-    difficulty: "Easy",
-    medicalCategory: "All Category",
+    category_id: "",
+    course_id: "",
     question: "",
     answer: "",
-    additionalNote: ""
+    note: ""
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -24,11 +23,65 @@ export default function AddFlashcardModal({ isOpen, onClose }) {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log("Flashcard created:", formData);
-    onClose();
+    setLoading(true);
+    setError("");
+
+    try {
+      const token = localStorage.getItem("token");
+      
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      // Prepare the data for the API
+      const apiData = {
+        category_id: formData.category_id,
+        course_id: formData.course_id,
+        question: formData.question,
+        answer: formData.answer,
+        note: formData.note
+      };
+
+      const response = await fetch("https://elab-server-xg5r.onrender.com/flash-cards", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(apiData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      const newFlashcard = await response.json();
+      
+      // Reset form and close modal
+      setFormData({
+        category_id: "",
+        course_id: "",
+        question: "",
+        answer: "",
+        note: ""
+      });
+      
+      // Call the callback to refresh the flashcards list
+      if (onFlashcardAdded) {
+        onFlashcardAdded();
+      }
+      
+      onClose();
+      
+    } catch (err) {
+      console.error("Error creating flashcard:", err);
+      setError(err.message || "Failed to create flashcard. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -41,7 +94,8 @@ export default function AddFlashcardModal({ isOpen, onClose }) {
           <h2 className="text-xl md:text-2xl font-bold text-gray-900">Add New Flashcard</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            disabled={loading}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50"
           >
             <X size={24} />
           </button>
@@ -49,86 +103,48 @@ export default function AddFlashcardModal({ isOpen, onClose }) {
 
         {/* Modal Content */}
         <form onSubmit={handleSubmit} className="p-4 md:p-6">
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600 text-sm">{error}</p>
+            </div>
+          )}
+
           {/* Categories Section */}
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-              <BookOpen size={18} className="mr-2" /> Select Categories
+              <BookOpen size={18} className="mr-2" /> Flashcard Details
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Enter Case study title
+                  Category ID
                 </label>
                 <input
                   type="text"
-                  name="caseStudyTitle"
-                  value={formData.caseStudyTitle}
+                  name="category_id"
+                  value={formData.category_id}
                   onChange={handleInputChange}
+                  required
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter title"
+                  placeholder="Enter category ID"
                 />
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Assign to Course
+                  Course ID
                 </label>
-                <div className="relative">
-                  <select
-                    name="course"
-                    value={formData.course}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-8"
-                  >
-                    <option value="">Select Course</option>
-                    <option value="medicine">Medicine</option>
-                    <option value="surgery">Surgery</option>
-                    <option value="pediatrics">Pediatrics</option>
-                  </select>
-                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Difficulty
-                </label>
-                <div className="relative">
-                  <select
-                    name="difficulty"
-                    value={formData.difficulty}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-8"
-                  >
-                    <option value="Easy">Easy</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Hard">Hard</option>
-                  </select>
-                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Medical Category
-                </label>
-                <div className="relative">
-                  <select
-                    name="medicalCategory"
-                    value={formData.medicalCategory}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-8"
-                  >
-                    <option value="All Category">All Category</option>
-                    <option value="Cardiology">Cardiology</option>
-                    <option value="Neurology">Neurology</option>
-                    <option value="Orthopedics">Orthopedics</option>
-                  </select>
-                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-                </div>
+                <input
+                  type="text"
+                  name="course_id"
+                  value={formData.course_id}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter course ID"
+                />
               </div>
             </div>
           </div>
@@ -143,6 +159,7 @@ export default function AddFlashcardModal({ isOpen, onClose }) {
               value={formData.question}
               onChange={handleInputChange}
               rows={3}
+              required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter the question here"
             />
@@ -158,6 +175,7 @@ export default function AddFlashcardModal({ isOpen, onClose }) {
               value={formData.answer}
               onChange={handleInputChange}
               rows={3}
+              required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter the answer here"
             />
@@ -167,8 +185,8 @@ export default function AddFlashcardModal({ isOpen, onClose }) {
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Additional Note</h3>
             <textarea
-              name="additionalNote"
-              value={formData.additionalNote}
+              name="note"
+              value={formData.note}
               onChange={handleInputChange}
               rows={2}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -181,15 +199,24 @@ export default function AddFlashcardModal({ isOpen, onClose }) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg mr-3 hover:bg-gray-50 transition-colors"
+              disabled={loading}
+              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg mr-3 hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors"
+              disabled={loading}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              Create Flashcard
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Creating...
+                </>
+              ) : (
+                "Create Flashcard"
+              )}
             </button>
           </div>
         </form>
