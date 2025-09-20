@@ -181,6 +181,7 @@ export default function CourseCategoriesPage() {
         });
 
         if (!res.ok) throw new Error("Failed to fetch categories");
+       
         setCategories(await res.json());
       } catch (err) {
         console.error("Failed to load categories:", err);

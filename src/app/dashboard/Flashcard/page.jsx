@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { RefreshCw, Search } from "lucide-react";
+import { toast } from "react-toastify";
 
 const FlashcardPage = () => {
   const url = useAuthStore((state) => state.url);
@@ -15,11 +16,14 @@ const FlashcardPage = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const { user, fetchUser } = useAuthStore();
 
   // Fetch courses
   useEffect(() => {
     const fetchCourses = async () => {
       try {
+        fetchUser();
+
         const token = localStorage.getItem("token");
         if (!token) return;
         const res = await fetch(`${url}/orders/ordered-courses`, {

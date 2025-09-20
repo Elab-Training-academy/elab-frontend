@@ -8,6 +8,7 @@ import { RadialBarChart, RadialBar, ResponsiveContainer } from "recharts";
 import { useParams } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import Link from "next/link";
+import { toast } from "react-toastify";
 
 const NCLEXCourseDashboard = () => {
   const { id } = useParams();
@@ -18,11 +19,15 @@ const NCLEXCourseDashboard = () => {
   const [loadingProgress, setLoadingProgress] = useState(true);
   const [modules, setModules] = useState([]);
   const [loadingModules, setLoadingModules] = useState(false);
+  const { user, fetchUser } = useAuthStore();
 
   // ✅ Fetch Ordered Courses
   useEffect(() => {
     const fetchCourses = async () => {
+
       try {
+        fetchUser();
+
         const token = localStorage.getItem("token");
         if (!token) {
           console.error("No token found");
@@ -79,7 +84,8 @@ const NCLEXCourseDashboard = () => {
         
 
         if (!res.ok) {
-          console.error("Failed to fetch course progress:", res.status);
+          const err = await res.json();
+          console.log(err);
           setProgressData({});
           return;
         }
