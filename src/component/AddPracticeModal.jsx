@@ -1,51 +1,71 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, ChevronDown, Plus, Minus, Check, Clock, Star } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
+import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "../../src/store/authStore";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 export default function AddSmartPracticeModal({ isOpen, onClose }) {
-  const [formData, setFormData] = useState({
-    category: "",
-    course: "",
-    difficulty: "Easy",
-    questionType: "Multiple Choice",
-    timeLimit: "60",
-    points: "10",
-    questionText: "",
-    options: [
-      { id: 1, text: "", isCorrect: true },
-      { id: 2, text: "", isCorrect: false },
-    ],
-    explanation: "",
-    hint: "",
-  });
-
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(false);
-
   const url = useAuthStore((state) => state.url);
-  const token = localStorage.getItem("token");
+  const token = useAuthStore((state) => state.token);
   const router = useRouter();
 
-  // Fetch categories from backend
+  const [loading, setLoading] = useState(false);
+  const [courses, setCourses] = useState([]);
+  const [categories, setCategories] = useState([]);
+
+  const [formData, setFormData] = useState({
+    questionText: "",
+    difficulty: "easy",
+    category: "",
+    course: "",
+    questionType: "single_choice",
+    explanation: "",
+    points: 1,
+    timeLimit: 30,
+    hint: "",
+    options: [{ text: "", isCorrect: false }],
+  });
+
+  // ✅ Reset form
+  const resetForm = () => {
+    setFormData({
+      questionText: "",
+      difficulty: "easy",
+      category: "",
+      course: "",
+      questionType: "single_choice",
+      explanation: "",
+      points: 1,
+      timeLimit: 30,
+      hint: "",
+      options: [{ text: "", isCorrect: false }],
+    });
+  };
+
+  // ✅ Fetch courses
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const res = await fetch(`${url}/courses/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) setCourses(await res.json());
+      } catch (err) {
+        console.error("Error fetching courses:", err);
+      }
+    };
+    if (isOpen) fetchCourses();
+  }, [isOpen, url, token]);
+
+  // ✅ Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch(`${url}/categories/`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const res = await fetch(`${url}/course-categories/`, {
+          headers: { Authorization: `Bearer ${token}` },
         });
-        if (res.ok) {
-          const data = await res.json();
-          setCategories(data);
-        } else {
-          console.error("Failed to fetch categories", res.status);
-        }
+        if (res.ok) setCategories(await res.json());
       } catch (err) {
         console.error("Error fetching categories:", err);
       }
@@ -53,63 +73,7 @@ export default function AddSmartPracticeModal({ isOpen, onClose }) {
     if (isOpen) fetchCategories();
   }, [isOpen, url, token]);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleOptionChange = (id, field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      options: prev.options.map((option) =>
-        option.id === id ? { ...option, [field]: value } : option
-      ),
-    }));
-  };
-
-  const addOption = () => {
-    setFormData((prev) => ({
-      ...prev,
-      options: [...prev.options, { id: Date.now(), text: "", isCorrect: false }],
-    }));
-  };
-
-  const removeOption = (id) => {
-    if (formData.options.length > 2) {
-      setFormData((prev) => ({
-        ...prev,
-        options: prev.options.filter((option) => option.id !== id),
-      }));
-    }
-  };
-
-  const toggleCorrectOption = (id) => {
-    setFormData((prev) => ({
-      ...prev,
-      options: prev.options.map((option) =>
-        option.id === id ? { ...option, isCorrect: !option.isCorrect } : option
-      ),
-    }));
-  };
-
-  const resetForm = () => {
-    setFormData({
-      category: "",
-      course: "",
-      difficulty: "Easy",
-      questionType: "Multiple Choice",
-      timeLimit: "60",
-      points: "10",
-      questionText: "",
-      options: [
-        { id: 1, text: "", isCorrect: true },
-        { id: 2, text: "", isCorrect: false },
-      ],
-      explanation: "",
-      hint: "",
-    });
-  };
-
+  // ✅ Handle submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -117,18 +81,18 @@ export default function AddSmartPracticeModal({ isOpen, onClose }) {
     const payload = {
       question: formData.questionText,
       difficulty: formData.difficulty.toLowerCase(),
-      category_id: formData.category, // real ID from API
-      time: parseInt(formData.timeLimit, 10),
-      points: parseInt(formData.points, 10),
-      mode: "smart practice",
-      level: formData.course || "general",
+      course_category_id: formData.category,
+      course_id: formData.course,
       reason: formData.explanation,
+      status: "published",
+      question_type: formData.questionType,
+      points: parseInt(formData.points, 10),
+      time: parseInt(formData.timeLimit, 10),
       answers: formData.options.map((opt) => ({
         answer: opt.text,
         is_correct: opt.isCorrect,
       })),
       hint: formData.hint || null,
-      question_type: formData.questionType.toLowerCase(),
     };
 
     try {
@@ -143,13 +107,15 @@ export default function AddSmartPracticeModal({ isOpen, onClose }) {
 
       if (!res.ok) {
         const errorData = await res.json();
-        toast.error("❌ Failed: " + (errorData.message || "Unknown error"));
+        toast.error("❌ Failed: " + (errorData.detail || "Unknown error"));
         setLoading(false);
         return;
       }
 
-      await res.json();
+      const data = await res.json();
       toast.success("✅ Question saved!");
+      console.log("Saved question:", data);
+
       resetForm();
       onClose();
       router.refresh();
@@ -161,253 +127,226 @@ export default function AddSmartPracticeModal({ isOpen, onClose }) {
     }
   };
 
+  // ✅ Handle option changes
+  const handleOptionChange = (index, field, value) => {
+    setFormData((prev) => {
+      const newOptions = [...prev.options];
+      newOptions[index][field] = value;
+      return { ...prev, options: newOptions };
+    });
+  };
+
+  // ✅ Add option
+  const addOption = () => {
+    setFormData((prev) => ({
+      ...prev,
+      options: [...prev.options, { text: "", isCorrect: false }],
+    }));
+  };
+
+  // ✅ Remove option
+  const removeOption = (index) => {
+    setFormData((prev) => {
+      const newOptions = prev.options.filter((_, i) => i !== index);
+      return { ...prev, options: newOptions };
+    });
+  };
+
   if (!isOpen) return null;
 
   return (
-    <>
-      {/* Modal Overlay */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-          {/* Modal Header */}
-          <div className="flex items-center justify-between p-4 md:p-6 border-b">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900">
-              Add Smart Practice Question
-            </h2>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <h2 className="text-xl font-bold mb-4">Add Smart Practice Question</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Question */}
+          <div>
+            <label className="block text-sm font-medium">Question</label>
+            <textarea
+              className="w-full border rounded p-2"
+              value={formData.questionText}
+              onChange={(e) =>
+                setFormData({ ...formData, questionText: e.target.value })
+              }
+              required
+            />
+          </div>
+
+          {/* Course & Category */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium">Course</label>
+              <select
+                className="w-full border rounded p-2"
+                value={formData.course}
+                onChange={(e) =>
+                  setFormData({ ...formData, course: e.target.value })
+                }
+                required
+              >
+                <option value="">Select Course</option>
+                {courses.map((course) => (
+                  <option key={course.id} value={course.id}>
+                    {course.name || course.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Category</label>
+              <select
+                className="w-full border rounded p-2"
+                value={formData.category}
+                onChange={(e) =>
+                  setFormData({ ...formData, category: e.target.value })
+                }
+                required
+              >
+                <option value="">Select Category</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Question Type */}
+          <div>
+            <label className="block text-sm font-medium">Question Type</label>
+            <select
+              className="w-full border rounded p-2"
+              value={formData.questionType}
+              onChange={(e) =>
+                setFormData({ ...formData, questionType: e.target.value })
+              }
             >
-              <X size={24} />
+              <option value="single_choice">Single Choice</option>
+              <option value="multiple_choice">Multiple Choice</option>
+              <option value="fill_gap">Fill Gap</option>
+            </select>
+          </div>
+
+          {/* Options */}
+          <div>
+            <label className="block text-sm font-medium">Options</label>
+            {formData.options.map((opt, i) => (
+              <div key={i} className="flex items-center gap-2 mb-2">
+                <input
+                  type="text"
+                  placeholder={`Option ${i + 1}`}
+                  className="flex-1 border rounded p-2"
+                  value={opt.text}
+                  onChange={(e) =>
+                    handleOptionChange(i, "text", e.target.value)
+                  }
+                  required
+                />
+                <label className="flex items-center gap-1">
+                  <input
+                    type="checkbox"
+                    checked={opt.isCorrect}
+                    onChange={(e) =>
+                      handleOptionChange(i, "isCorrect", e.target.checked)
+                    }
+                  />
+                  Correct
+                </label>
+                <button
+                  type="button"
+                  onClick={() => removeOption(i)}
+                  className="px-2 py-1 text-sm bg-red-500 text-white rounded"
+                  disabled={formData.options.length === 1}
+                >
+                  X
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addOption}
+              className="px-3 py-1 bg-blue-500 text-white text-sm rounded"
+            >
+              + Add Option
             </button>
           </div>
 
-
-          <form onSubmit={handleSubmit} className="p-4 md:p-6">
-            {/* Category and Course */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category
-                </label>
-                <div className="relative">
-                  <select
-                    name="category"
-                    value={formData.category}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    required
-                  >
-                    <option value="">Select Category</option>
-                    {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"
-                    size={16}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Course (Optional)
-                </label>
-                <input
-                  type="text"
-                  name="course"
-                  value={formData.course}
-                  onChange={handleInputChange}
-                  placeholder="Enter course or level"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-
-            {/* Question Type, Time, Points */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Question Type
-                </label>
-                <select
-                  name="questionType"
-                  value={formData.questionType}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                >
-                  <option value="Multiple Choice">Multiple Choice</option>
-                  <option value="True/False">True/False</option>
-                  <option value="Short Answer">Short Answer</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                  <Clock size={16} className="mr-2" /> Time (sec)
-                </label>
-                <input
-                  type="number"
-                  name="timeLimit"
-                  value={formData.timeLimit}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                  <Star size={16} className="mr-2" /> Points
-                </label>
-                <input
-                  type="number"
-                  name="points"
-                  value={formData.points}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Difficulty */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Difficulty
-              </label>
-              <select
-                name="difficulty"
-                value={formData.difficulty}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              >
-                <option value="Easy">Easy</option>
-                <option value="Medium">Medium</option>
-                <option value="Hard">Hard</option>
-              </select>
-            </div>
-
-            {/* Question Text */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Question
-              </label>
-              <textarea
-                name="questionText"
-                value={formData.questionText}
-                onChange={handleInputChange}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+          {/* Points & Time */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium">Points</label>
+              <input
+                type="number"
+                className="w-full border rounded p-2"
+                value={formData.points}
+                onChange={(e) =>
+                  setFormData({ ...formData, points: e.target.value })
+                }
                 required
               />
             </div>
-
-            {/* Options */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Options
-              </label>
-              {formData.options.map((option, index) => (
-                <div key={option.id} className="border rounded-lg p-3 mb-2">
-                  <div className="flex justify-between items-center mb-2">
-                    <span>Option {index + 1}</span>
-                    <button
-                      type="button"
-                      onClick={() => toggleCorrectOption(option.id)}
-                      className={`px-2 py-1 rounded text-sm ${
-                        option.isCorrect
-                          ? "bg-green-100 text-green-600"
-                          : "bg-gray-100 text-gray-500"
-                      }`}
-                    >
-                      {option.isCorrect ? "Correct" : "Mark Correct"}
-                    </button>
-                  </div>
-                  <input
-                    type="text"
-                    value={option.text}
-                    onChange={(e) =>
-                      handleOptionChange(option.id, "text", e.target.value)
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    placeholder="Option text"
-                    required
-                  />
-                  {formData.options.length > 2 && (
-                    <button
-                      type="button"
-                      onClick={() => removeOption(option.id)}
-                      className="mt-2 text-red-500 text-sm"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={addOption}
-                className="mt-2 text-blue-600 text-sm"
-              >
-                + Add Option
-              </button>
-            </div>
-
-            {/* Explanation */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Explanation
-              </label>
-              <textarea
-                name="explanation"
-                value={formData.explanation}
-                onChange={handleInputChange}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            <div>
+              <label className="block text-sm font-medium">Time Limit (s)</label>
+              <input
+                type="number"
+                className="w-full border rounded p-2"
+                value={formData.timeLimit}
+                onChange={(e) =>
+                  setFormData({ ...formData, timeLimit: e.target.value })
+                }
                 required
               />
             </div>
+          </div>
 
-            {/* Hint */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Hint (Optional)
-              </label>
-              <textarea
-                name="hint"
-                value={formData.hint}
-                onChange={handleInputChange}
-                rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              />
-            </div>
+          {/* Explanation */}
+          <div>
+            <label className="block text-sm font-medium">Explanation</label>
+            <textarea
+              className="w-full border rounded p-2"
+              value={formData.explanation}
+              onChange={(e) =>
+                setFormData({ ...formData, explanation: e.target.value })
+              }
+            />
+          </div>
 
-            {/* Submit */}
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 border rounded-lg mr-3"
-                disabled={loading}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg"
-                disabled={loading}
-              >
-                {loading ? "Saving..." : "Save Question"}
-              </button>
-            </div>
-          </form>
-        </div>
+          {/* Hint */}
+          <div>
+            <label className="block text-sm font-medium">Hint</label>
+            <input
+              type="text"
+              className="w-full border rounded p-2"
+              value={formData.hint}
+              onChange={(e) =>
+                setFormData({ ...formData, hint: e.target.value })
+              }
+            />
+          </div>
+
+          {/* Buttons */}
+          <div className="flex justify-end gap-2 mt-4">
+            <button
+              type="button"
+              onClick={() => {
+                resetForm();
+                onClose();
+              }}
+              className="px-4 py-2 bg-gray-200 rounded"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-4 py-2 bg-blue-600 text-white rounded"
+            >
+              {loading ? "Saving..." : "Save"}
+            </button>
+          </div>
+        </form>
       </div>
-
-      <ToastContainer position="top-right" autoClose={3000} />
-    </>
+    </div>
   );
 }
