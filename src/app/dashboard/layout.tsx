@@ -3,7 +3,7 @@ import { useState, useEffect} from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/component/Sidebar";
 import { Menu } from "lucide-react";
-import { useAuthStore } from "@/store/authStore";
+
 
 export default function DashboardLayout({
   children,

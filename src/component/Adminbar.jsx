@@ -275,7 +275,7 @@ const adminLinks = [
   { name: "Course Management", href: "/elab-admin/courses", icon: BookOpen },
   { name: "Question Bank", href: "/elab-admin/questions", icon: HelpCircle },
   { name: "Categories", href: "/elab-admin/categories", icon: HelpCircle },
-  { name: "Smart Practice", href: "/elab-admin/practice", icon: PlayCircle },
+  { name: "Smart Practice", href: "/elab-admin/practices", icon: PlayCircle },
   { name: "Case Studies", href: "/elab-admin/case-studies", icon: FileText },
   { name: "Flashcards", href: "/elab-admin/flashcards", icon: Layers },
   { name: "Course category", href: "/elab-admin/course-category", icon: Layers },

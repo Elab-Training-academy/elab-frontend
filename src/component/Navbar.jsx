@@ -14,13 +14,18 @@ const Navbar = () => {
   const [loadingProfile, setLoadingProfile] = useState(false); // ✅ local loading state
   const pathname = usePathname();
   const router = useRouter();
+  const {token} = useAuthStore()
 
   const profile = useAuthStore((state) => state.profile);
   const fetchProfile = useAuthStore((state) => state.fetchProfile);
 
   // fetch profile when navbar mounts
   useEffect(() => {
-    if (fetchProfile) fetchProfile();
+    if(!token){
+      return;
+    }else{
+      fetchProfile()
+    }
   }, [fetchProfile]);
 
   
