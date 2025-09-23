@@ -271,6 +271,7 @@ function EditUserModal({ isOpen, onClose, user, onUserUpdated }) {
             >
               <option value="staff">Staff</option>
               <option value="admin">Admin</option>
+              <option value="user">User</option>
             </select>
           </div>
           <div>

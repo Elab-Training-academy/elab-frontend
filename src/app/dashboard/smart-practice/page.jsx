@@ -26,9 +26,9 @@ const SmartPractice = () => {
   // Mappers
   const difficultyMap = { Easy: "easy", Medium: "medium", Hard: "hard" };
   const questionTypeMap = {
-    "Mixed Practice": "mixed",
+    "Single choice": "single_choice",
     "Fill in the gap": "fill_gap",
-    "Multiple choice": "single_choice",
+    "Multiple choice": "multiple_choice",
   };
 
   // ✅ Fetch courses
@@ -89,7 +89,12 @@ const SmartPractice = () => {
 
         if (!res.ok) throw new Error(`Failed categories: ${res.status}`);
         const data = await res.json();
+        console.log("cat", data);
+        
         setCategories(data);
+
+        console.log("updated cat", data);
+        
       } catch (err) {
         console.error("Error fetching categories:", err);
       } finally {
@@ -128,9 +133,11 @@ const SmartPractice = () => {
         course_id: selectedCourse,
         difficulty: difficultyMap[difficulty],
         question_type: questionTypeMap[questionType],
-        course_category_id: selectedCategoryObj?.id || null,
+        course_category_id: [selectedCategoryObj?.id] || null,
       };
 
+      console.log(payload);
+      
       const res = await fetch(`${url}/sp-questions/filter/questions`, {
         method: "POST",
         headers: {
@@ -148,6 +155,8 @@ const SmartPractice = () => {
       }
       
       const data = await res.json();
+      console.log("questions ", data);
+      
       if (!Array.isArray(data) || data.length === 0) {
         
         toast.info("No questions found for the selected criteria.");

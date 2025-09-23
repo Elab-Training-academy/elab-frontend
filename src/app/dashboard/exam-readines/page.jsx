@@ -76,13 +76,16 @@ const ExamReadinessDashboard = () => {
       }
     };
     fetchCourses();
-  }, [url, fetchUser, user ]);
+  }, [url ]);
 
   // ✅ Fetch readiness data
   useEffect(() => {
     const fetchAllReadiness = async () => {
-      if (courses.length === 0) return;
       setLoading(true);
+      if (courses.length === 0) {
+        setLoading(false);
+        return
+      };
       try {
         const token = localStorage.getItem('token');
         if (!token) return;
@@ -98,8 +101,10 @@ const ExamReadinessDashboard = () => {
             if (res.ok) {
               const data = await res.json();
               readinessResults[courseId] = data;
+              setLoading(false);
             } else {
               readinessResults[courseId] = null;
+              setLoading(false);
             }
           } catch {
             readinessResults[courseId] = null;
@@ -113,7 +118,7 @@ const ExamReadinessDashboard = () => {
       }
     };
     fetchAllReadiness();
-  }, [courses, url]);
+  }, [url]);
 
   const ProgressBar = ({ percentage, className = '' }) => {
     const safePercent = Math.min(100, Math.max(0, Number(percentage) || 0));

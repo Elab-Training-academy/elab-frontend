@@ -1,13 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "react-toastify";
+
 
 export default function CreateModuleModal({ isOpen, onClose, courseId, onModuleCreated }) {
   const [formData, setFormData] = useState({
     title: "",
+    description: "",
     order_number: "",
     duration: "",
     pass_mark: "",
+    material: null,
   });
   const [loading, setLoading] = useState(false);
 
@@ -17,41 +21,52 @@ export default function CreateModuleModal({ isOpen, onClose, courseId, onModuleC
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleFileChange = (e) => {
+  setFormData({ ...formData, material: e.target.files[0] });
+};
+
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  e.preventDefault();
+  setLoading(true);
 
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch("https://elab-server-xg5r.onrender.com/modules", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          course_id: courseId,
-          ...formData,
-          order_number: Number(formData.order_number),
-          duration: Number(formData.duration),
-          pass_mark: Number(formData.pass_mark),
-        }),
-      });
-
-      if (res.ok) {
-        const newModule = await res.json();
-        onModuleCreated(newModule);
-        setFormData({ title: "", order_number: "", duration: "", pass_mark: "" });
-        onClose();
-      } else {
-        console.error("Failed to create module:", res.status);
-      }
-    } catch (err) {
-      console.error("Error creating module:", err);
-    } finally {
-      setLoading(false);
+  try {
+    const token = localStorage.getItem("token");
+    const data = new FormData();
+    data.append("course_id", courseId);
+    data.append("title", formData.title);
+    data.append("description", formData.description);
+    data.append("order_number", Number(formData.order_number));
+    data.append("duration", Number(formData.duration));
+    data.append("pass_mark", Number(formData.pass_mark));
+    if (formData.material) {
+      data.append("material", formData.material);
     }
-  };
+
+    const res = await fetch("https://elab-server-xg5r.onrender.com/modules/create", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: data,
+    });
+
+    if (res.ok) {
+      const newModule = await res.json();
+      onModuleCreated(newModule);
+      setFormData({ title: "", order_number: "", duration: "", pass_mark: "", description: "", material: null });
+      toast.success("Module Create Successfully");
+      onClose();
+    } else {
+      console.error("Failed to create module:", res.status);
+    }
+  } catch (err) {
+    console.error("Error creating module:", err);
+    toast.error("Failed to create module")
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
@@ -63,6 +78,14 @@ export default function CreateModuleModal({ isOpen, onClose, courseId, onModuleC
             value={formData.title}
             onChange={handleChange}
             placeholder="Module Title"
+            className="w-full border px-3 py-2 rounded"
+            required
+          />
+          <input
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            placeholder="Module Description"
             className="w-full border px-3 py-2 rounded"
             required
           />
@@ -93,6 +116,13 @@ export default function CreateModuleModal({ isOpen, onClose, courseId, onModuleC
             className="w-full border px-3 py-2 rounded"
             required
           />
+          <input 
+            type="file" 
+            name="material" 
+            onChange={handleFileChange}
+            required 
+          />
+
           <div className="flex justify-end gap-2">
             <button
               type="button"

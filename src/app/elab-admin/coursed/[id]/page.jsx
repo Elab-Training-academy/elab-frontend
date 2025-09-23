@@ -65,7 +65,7 @@ export default function SingleCoursePage() {
         }
 
         // fetch modules for this course
-        const moduleRes = await fetch(`${url}/modules?course_id=${id}`, {
+        const moduleRes = await fetch(`${url}/modules/course/${id}`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${newToken}`,
@@ -73,6 +73,8 @@ export default function SingleCoursePage() {
         });
         if (moduleRes.ok) {
           const moduleData = await moduleRes.json();
+          console.log(moduleData);
+          
           setModules(moduleData);
         }
       } catch (err) {
@@ -236,7 +238,7 @@ export default function SingleCoursePage() {
                         {m.order_number}. {m.title}
                       </a>
                       <p className="text-sm text-gray-500 mt-1">
-                        📚 {m.questions.length} Questions
+                        📚 {m.questions} Questions
                       </p>
                     </div>
 
