@@ -70,6 +70,9 @@ export default function SingleModulePage() {
         <h1 className="text-2xl font-bold text-gray-900">
           {module.title}
         </h1>
+         <p className="text-sm">
+            Module Description: <span className="font-semibold">{module.description}</span>
+          </p>
 
         {/* Order Number */}
         <div className="flex items-center gap-2 text-gray-700">
@@ -77,8 +80,28 @@ export default function SingleModulePage() {
           <p className="text-sm">
             Module Order: <span className="font-semibold">{module.order_number}</span>
           </p>
+          <p className="text-sm">
+            Module Duration: <span className="font-semibold">{module.duration}</span>
+          </p>
         </div>
-
+        <div>
+          <p className="text-sm">
+    Module Material:{" "}
+    {module.material_link ? (
+      <a
+        href={`${module.material_link}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 underline"
+      >
+        View Material
+      </a>
+    ) : (
+      <span className="text-gray-500">No material uploaded</span>
+    )}
+  </p>
+</div>
+  
         {/* Questions */}
         <div className="mt-4">
           <h2 className="text-lg font-semibold flex items-center gap-2">
