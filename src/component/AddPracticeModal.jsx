@@ -65,13 +65,23 @@ export default function AddSmartPracticeModal({ isOpen, onClose }) {
         const res = await fetch(`${url}/course-categories/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (res.ok) setCategories(await res.json());
+        if (res.ok) {
+          const data = await res.json();
+        const filtered = data.filter((cat) => cat.course_id === formData.course);
+        console.log(filtered);
+        
+        setCategories(filtered);
+        }else{
+          const err = await res.json()
+          console.log("error fetching", err);
+          
+        }
       } catch (err) {
         console.error("Error fetching categories:", err);
       }
     };
     if (isOpen) fetchCategories();
-  }, [isOpen, url, token]);
+  }, [isOpen, url, token, formData.course]);
 
   // ✅ Handle submit
   const handleSubmit = async (e) => {
@@ -193,7 +203,7 @@ export default function AddSmartPracticeModal({ isOpen, onClose }) {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium">Category</label>
+              <label className="block text-sm font-medium">Course Category</label>
               <select
                 className="w-full border rounded p-2"
                 value={formData.category}
@@ -202,7 +212,7 @@ export default function AddSmartPracticeModal({ isOpen, onClose }) {
                 }
                 required
               >
-                <option value="">Select Category</option>
+                <option value="">Select Course Category</option>
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
                     {cat.name}

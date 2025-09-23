@@ -16,7 +16,8 @@ export default function QuestionBank() {
   const [loading, setLoading] = useState(true);
   const { url } = useAuthStore();
   const [editingQuestion, setEditingQuestion] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null); // ✅ Track the question being deleted
+  const [deleteTarget, setDeleteTarget] = useState(null); 
+
 
   // ✅ Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -31,11 +32,24 @@ export default function QuestionBank() {
   useEffect(() => {
     const fetchQuestions = async () => {
       const token = localStorage.getItem("token");
-      if (!token) return;
+      if (!token) {
+        window.location.href = "/login"
+        return;
+      };
       try {
         const res = await fetch(`${url}/questions`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
+        if (!res.ok){
+          const err = await res.json();
+          if(err.detail === "Invalid access token or token expired"){
+            alert("Session Expired, pls login to continue.");
+            return window.location.href = "/login"
+          }else{
+            alert(err.detail)
+          }
+        }
         const data = await res.json();
         setQuestions(data);
       } catch (err) {
@@ -49,7 +63,7 @@ export default function QuestionBank() {
   }, [url]);
 
   // ✅ Search filter
-  const filteredQuestions = questions.filter((q) =>
+  const filteredQuestions = questions?.filter((q) =>
     q.question_text.toLowerCase().includes(searchQuery.toLowerCase())
   );
 

@@ -10,34 +10,35 @@ export default function AddQuestionModal({ isOpen, onClose, moduleId }) {
   const { url } = useAuthStore();
   const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [courseId, setCourseId] = useState("");
+  const [courses, setCourses] = useState([]);
+  const [moduleLoading, setModuleLoading] = useState(false);
+
   const [formData, setFormData] = useState({
     module_id: moduleId || "",
     questionText: "",
     points: 10,
-    questionType: "multiple_choice", // multiple_choice | single_choice | fill_gap
+    questionType: "multiple_choice",
     options: [
       { id: 1, text: "", isCorrect: false },
       { id: 2, text: "", isCorrect: false },
     ],
-    fillGapAnswers: [{ id: 1, text: "" }], // ✅ multiple fill-gap answers
+    fillGapAnswers: [{ id: 1, text: "" }],
     image: null,
   });
 
-  // 🔹 Handle text/number input changes
+  // Handle input change
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 🔹 Options handling
+  // Options handling
   const handleOptionChange = (id, field, value) => {
     setFormData((prev) => ({
       ...prev,
-      options: prev.options.map((option) =>
-        option.id === id ? { ...option, [field]: value } : option
+      options: prev.options.map((o) =>
+        o.id === id ? { ...o, [field]: value } : o
       ),
     }));
   };
@@ -53,57 +54,91 @@ export default function AddQuestionModal({ isOpen, onClose, moduleId }) {
     if (formData.options.length > 2) {
       setFormData((prev) => ({
         ...prev,
-        options: prev.options.filter((option) => option.id !== id),
+        options: prev.options.filter((o) => o.id !== id),
       }));
     }
   };
 
-  // 🔹 Fetch modules when modal opens
+  const fetchModules = async (courseId) => {
+    try {
+      setModuleLoading(true);
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Session expired, please login");
+
+      const res = await fetch(`${url}/modules/course/${courseId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch modules");
+
+      const data = await res.json();
+      setModules(data);
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setModuleLoading(false);
+    }
+  };
+
+  // Fetch courses when modal opens
   useEffect(() => {
     if (!isOpen) return;
-    const fetchModules = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Session expired, please login");
+      return;
+    }
+
+    const fetchCourses = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const res = await fetch(`${url}/modules`, {
+        const res = await fetch(`${url}/courses`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (!res.ok) throw new Error("Failed to fetch modules");
+
+        if (!res.ok) throw new Error("Failed to fetch courses");
         const data = await res.json();
-        setModules(data); // assume backend returns array of {id, name}
+        setCourses(data);
       } catch (err) {
-        console.error("❌ Error fetching modules:", err);
+        toast.error(err.message);
       }
     };
-    fetchModules();
-  }, [isOpen]);
 
-  // 🔹 Correct option toggle
+    fetchCourses();
+  }, [isOpen, url]);
+
+  // Handle course change
+  const handleCoursesChange = (e) => {
+    const selectedId = e.target.value;
+    setCourseId(selectedId);
+    setFormData((prev) => ({ ...prev, module_id: "" })); // reset module
+    if (selectedId) fetchModules(selectedId);
+  };
+
+  // Toggle correct option
   const toggleCorrectOption = (id) => {
     if (formData.questionType === "multiple_choice") {
       setFormData((prev) => ({
         ...prev,
-        options: prev.options.map((option) =>
-          option.id === id ? { ...option, isCorrect: !option.isCorrect } : option
+        options: prev.options.map((o) =>
+          o.id === id ? { ...o, isCorrect: !o.isCorrect } : o
         ),
       }));
     } else {
       setFormData((prev) => ({
         ...prev,
-        options: prev.options.map((option) =>
-          option.id === id
-            ? { ...option, isCorrect: true }
-            : { ...option, isCorrect: false }
+        options: prev.options.map((o) =>
+          o.id === id ? { ...o, isCorrect: true } : { ...o, isCorrect: false }
         ),
       }));
     }
   };
 
-  // 🔹 Fill Gap Handlers
+  // Fill gap handling
   const handleFillGapChange = (id, value) => {
     setFormData((prev) => ({
       ...prev,
-      fillGapAnswers: prev.fillGapAnswers.map((ans) =>
-        ans.id === id ? { ...ans, text: value } : ans
+      fillGapAnswers: prev.fillGapAnswers.map((a) =>
+        a.id === id ? { ...a, text: value } : a
       ),
     }));
   };
@@ -119,50 +154,44 @@ export default function AddQuestionModal({ isOpen, onClose, moduleId }) {
     if (formData.fillGapAnswers.length > 1) {
       setFormData((prev) => ({
         ...prev,
-        fillGapAnswers: prev.fillGapAnswers.filter((ans) => ans.id !== id),
+        fillGapAnswers: prev.fillGapAnswers.filter((a) => a.id !== id),
       }));
     }
   };
 
   const handleImageChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      image: e.target.files[0],
-    }));
+    setFormData((prev) => ({ ...prev, image: e.target.files[0] }));
   };
 
-  // 🔹 Submit Handler
+  // Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true)
-
-    const token = localStorage.getItem("token");
-    if (!token) return;
+    setLoading(true);
 
     try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Session expired, please login");
+
       const payload = new FormData();
       payload.append("module_id", formData.module_id);
       payload.append("question_text", formData.questionText);
       payload.append("points", formData.points);
       payload.append("answer_type", formData.questionType);
 
-      if (formData.image) {
-        payload.append("image", formData.image);
-      }
+      if (formData.image) payload.append("image", formData.image);
 
-      if (formData.questionType === "fill_gap") {
-        const answerOptions = formData.fillGapAnswers.map((ans) => ({
-          option_text: ans.text,
-          is_correct: true,
-        }));
-        payload.append("answer_options", JSON.stringify(answerOptions));
-      } else {
-        const answerOptions = formData.options.map((opt) => ({
-          option_text: opt.text,
-          is_correct: opt.isCorrect,
-        }));
-        payload.append("answer_options", JSON.stringify(answerOptions));
-      }
+      const answerOptions =
+        formData.questionType === "fill_gap"
+          ? formData.fillGapAnswers.map((a) => ({
+              option_text: a.text,
+              is_correct: true,
+            }))
+          : formData.options.map((o) => ({
+              option_text: o.text,
+              is_correct: o.isCorrect,
+            }));
+
+      payload.append("answer_options", JSON.stringify(answerOptions));
 
       const res = await fetch(`${url}/questions`, {
         method: "POST",
@@ -170,16 +199,13 @@ export default function AddQuestionModal({ isOpen, onClose, moduleId }) {
         body: payload,
       });
 
-      if (!res.ok) throw new Error("Failed to save question");
+      if (!res.ok) throw new Error("Failed to create question");
 
-      const data = await res.json();
-      console.log("✅ Question created:", data);
-      toast.success("Question Create Successfully");
-
+      toast.success("Question created successfully");
       onClose();
     } catch (err) {
-      console.error("❌ Error creating question:", err);
-      toast.error("Error creating question");
+      toast.error(err.message);
+    } finally {
       setLoading(false);
     }
   };
@@ -194,18 +220,31 @@ export default function AddQuestionModal({ isOpen, onClose, moduleId }) {
           <h2 className="text-xl md:text-2xl font-bold text-gray-900">
             Add Question
           </h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-          >
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
             <X size={24} />
           </button>
         </div>
 
-        {/* Content */}
+        {/* Form */}
         <form onSubmit={handleSubmit} className="p-4 md:p-6 space-y-4">
-          {/* Module Selection */}
-           <div>
+          {/* Course selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Select Course</label>
+            <select
+              value={courseId}
+              onChange={handleCoursesChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              required
+            >
+              <option value="">-- Select a course --</option>
+              {courses.map((c) => (
+                <option key={c.id} value={c.id}>{c.title}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Module selection */}
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Select Module</label>
             <select
               name="module_id"
@@ -213,21 +252,20 @@ export default function AddQuestionModal({ isOpen, onClose, moduleId }) {
               onChange={handleInputChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               required
+              disabled={moduleLoading}
             >
-              <option value="">-- Select a module --</option>
-              {modules.map(module => (
-                <option key={module.id} value={module.id}>
-                  {module.title}
-                </option>
+              <option value="">
+                {moduleLoading ? "Loading modules..." : "-- Select a module --"}
+              </option>
+              {modules.map((m) => (
+                <option key={m.id} value={m.id}>{m.title}</option>
               ))}
             </select>
           </div>
 
-          {/* Question Text */}
+          {/* Question text */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Question Text
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Question Text</label>
             <textarea
               name="questionText"
               value={formData.questionText}
@@ -239,11 +277,9 @@ export default function AddQuestionModal({ isOpen, onClose, moduleId }) {
             />
           </div>
 
-          {/* Type */}
+          {/* Question type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Question Type
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Question Type</label>
             <select
               name="questionType"
               value={formData.questionType}
@@ -259,9 +295,7 @@ export default function AddQuestionModal({ isOpen, onClose, moduleId }) {
 
           {/* Image */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Image (optional)
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Image (optional)</label>
             <input
               type="file"
               accept="image/*"
@@ -272,9 +306,7 @@ export default function AddQuestionModal({ isOpen, onClose, moduleId }) {
 
           {/* Points */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Points
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Points</label>
             <input
               type="number"
               name="points"
@@ -285,41 +317,32 @@ export default function AddQuestionModal({ isOpen, onClose, moduleId }) {
             />
           </div>
 
-          {/* Options (for MCQ/SCQ) */}
+          {/* Options */}
           {formData.questionType !== "fill_gap" && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Options
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Options</label>
               <div className="space-y-3">
-                {formData.options.map((option, index) => (
-                  <div key={option.id} className="flex items-start gap-3">
+                {formData.options.map((o, index) => (
+                  <div key={o.id} className="flex items-start gap-3">
                     <div className="flex items-center gap-2 mt-3">
                       <button
                         type="button"
-                        onClick={() => toggleCorrectOption(option.id)}
+                        onClick={() => toggleCorrectOption(o.id)}
                         className={`w-6 h-6 rounded border-2 flex items-center justify-center ${
-                          option.isCorrect
-                            ? "bg-blue-600 border-blue-600 text-white"
-                            : "border-gray-300 text-transparent"
+                          o.isCorrect ? "bg-blue-600 border-blue-600 text-white" : "border-gray-300 text-transparent"
                         }`}
                       >
                         <Check size={14} />
                       </button>
                       <span className="text-sm text-gray-600">Correct</span>
                     </div>
-
                     <div className="flex-1">
-                      <label className="block text-sm text-gray-600 mb-1">
-                        Option {index + 1}
-                      </label>
+                      <label className="block text-sm text-gray-600 mb-1">Option {index + 1}</label>
                       <div className="flex gap-2">
                         <input
                           type="text"
-                          value={option.text}
-                          onChange={(e) =>
-                            handleOptionChange(option.id, "text", e.target.value)
-                          }
+                          value={o.text}
+                          onChange={(e) => handleOptionChange(o.id, "text", e.target.value)}
                           className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                           placeholder="Enter option text"
                           required
@@ -327,7 +350,7 @@ export default function AddQuestionModal({ isOpen, onClose, moduleId }) {
                         {formData.options.length > 2 && (
                           <button
                             type="button"
-                            onClick={() => removeOption(option.id)}
+                            onClick={() => removeOption(o.id)}
                             className="px-2 text-red-600 hover:text-red-800"
                           >
                             <Minus size={20} />
@@ -348,21 +371,19 @@ export default function AddQuestionModal({ isOpen, onClose, moduleId }) {
             </div>
           )}
 
-          {/* Fill Gap */}
+          {/* Fill gap answers */}
           {formData.questionType === "fill_gap" && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Correct Answers (students must type these)
               </label>
               <div className="space-y-3">
-                {formData.fillGapAnswers.map((ans, index) => (
-                  <div key={ans.id} className="flex gap-2">
+                {formData.fillGapAnswers.map((a, index) => (
+                  <div key={a.id} className="flex gap-2">
                     <input
                       type="text"
-                      value={ans.text}
-                      onChange={(e) =>
-                        handleFillGapChange(ans.id, e.target.value)
-                      }
+                      value={a.text}
+                      onChange={(e) => handleFillGapChange(a.id, e.target.value)}
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       placeholder={`Answer ${index + 1}`}
                       required
@@ -370,7 +391,7 @@ export default function AddQuestionModal({ isOpen, onClose, moduleId }) {
                     {formData.fillGapAnswers.length > 1 && (
                       <button
                         type="button"
-                        onClick={() => removeFillGapAnswer(ans.id)}
+                        onClick={() => removeFillGapAnswer(a.id)}
                         className="px-2 text-red-600 hover:text-red-800"
                       >
                         <Minus size={20} />
@@ -398,13 +419,14 @@ export default function AddQuestionModal({ isOpen, onClose, moduleId }) {
             >
               Cancel
             </button>
-            <button 
-            type="submit"
-            disabled={loading} 
-            className={`px-6 py-2 bg-green-600 text-white rounded-lg ${
-            loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"}`}
+            <button
+              type="submit"
+              disabled={loading}
+              className={`px-6 py-2 text-white rounded-lg ${
+                loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+              }`}
             >
-             {loading ? "Creating...." : "Question Created"} 
+              {loading ? "Creating..." : "Create Question"}
             </button>
           </div>
         </form>
