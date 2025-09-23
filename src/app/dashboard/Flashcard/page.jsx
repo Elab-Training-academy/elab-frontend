@@ -100,7 +100,7 @@ const FlashcardPage = () => {
         setCurrentIndex(0);
         setFlipped(false);
       } catch (err) {
-        console.error(err);
+        console.log(err);
         setFlashcards([]);
         setFilteredFlashcards([]);
       } finally {

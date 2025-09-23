@@ -7,6 +7,7 @@ import { X, ChevronDown, BookOpen, FileText, Loader } from "lucide-react";
 export default function AddFlashcardModal({ isOpen, onClose, onFlashcardAdded }) {
   const [formData, setFormData] = useState({
     category_id: "",
+    course_category_id: "",
     course_id: "",
     question: "",
     answer: "",
@@ -14,7 +15,7 @@ export default function AddFlashcardModal({ isOpen, onClose, onFlashcardAdded })
   });
 
   const [categories, setCategories] = useState([]);
-  const [allCategories, setAllCategories] = useState([]); // keep unfiltered categories
+  const [allCategories, setAllCategories] = useState([]); 
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
@@ -26,6 +27,7 @@ export default function AddFlashcardModal({ isOpen, onClose, onFlashcardAdded })
       fetchCategoriesAndCourses();
       setFormData({
         category_id: "",
+        course_category_id: "",
         course_id: "",
         question: "",
         answer: "",
@@ -59,7 +61,7 @@ export default function AddFlashcardModal({ isOpen, onClose, onFlashcardAdded })
       }
       const categoriesData = await categoriesResponse.json();
       setAllCategories(Array.isArray(categoriesData) ? categoriesData : []);
-      setCategories([]); // start empty until course is chosen
+      setCategories([]);
 
       // Fetch courses
       const coursesResponse = await fetch(
@@ -96,13 +98,24 @@ export default function AddFlashcardModal({ isOpen, onClose, onFlashcardAdded })
 
     // When course changes, filter categories
     if (name === "course_id") {
+      const filtered = allCategories.filter(cat => String(cat.course_id) === String(value));
+      setCategories(filtered);
       setFormData(prev => ({
         ...prev,
         course_id: value,
-        category_id: "" // reset category
+        category_id: "",
+        course_category_id: filtered.length > 0 ? filtered[0].id : ""
       }));
-      const filtered = allCategories.filter(cat => cat.course_id === value);
-      setCategories(filtered);
+    }
+
+    // When category changes, set course_category_id
+    if (name === "category_id") {
+      const selectedCategory = allCategories.find(cat => String(cat.id) === String(value));
+      setFormData(prev => ({
+        ...prev,
+        category_id: value,
+        course_category_id: selectedCategory ? selectedCategory.id : ""
+      }));
     }
   };
 
@@ -121,6 +134,7 @@ export default function AddFlashcardModal({ isOpen, onClose, onFlashcardAdded })
       const apiData = {
         category_id: formData.category_id,
         course_id: formData.course_id,
+        course_category_id: formData.course_category_id,
         question: formData.question,
         answer: formData.answer,
         note: formData.note || ""
@@ -152,9 +166,7 @@ export default function AddFlashcardModal({ isOpen, onClose, onFlashcardAdded })
     }
   };
 
-  const getDisplayName = item => {
-    return item.title || item.name || `ID: ${item.id}`;
-  };
+  const getDisplayName = item => item.title || item.name || `ID: ${item.id}`;
 
   if (!isOpen) return null;
 
@@ -188,72 +200,58 @@ export default function AddFlashcardModal({ isOpen, onClose, onFlashcardAdded })
             </div>
           )}
 
-          {/* Categories and Courses Section */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-              <BookOpen size={18} className="mr-2" /> Flashcard Details
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Course Dropdown */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Course *</label>
-                <div className="relative">
-                  <select
-                    name="course_id"
-                    value={formData.course_id}
-                    onChange={handleInputChange}
-                    required
-                    disabled={fetching || loading}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-8 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <option value="">Select a course</option>
-                    {courses.map(course => (
-                      <option key={course.id} value={course.id}>
-                        {getDisplayName(course)}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-                </div>
-                {courses.length === 0 && !fetching && (
-                  <p className="text-xs text-gray-500 mt-1">No courses available</p>
-                )}
+          {/* Course & Category Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {/* Course Dropdown */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Course *</label>
+              <div className="relative">
+                <select
+                  name="course_id"
+                  value={formData.course_id}
+                  onChange={handleInputChange}
+                  required
+                  disabled={fetching || loading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 appearance-none pr-8 disabled:opacity-50"
+                >
+                  <option value="">Select a course</option>
+                  {courses.map(course => (
+                    <option key={course.id} value={course.id}>
+                      {getDisplayName(course)}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               </div>
+            </div>
 
-              {/* Category Dropdown (filtered by course) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
-                <div className="relative">
-                  <select
-                    name="category_id"
-                    value={formData.category_id}
-                    onChange={handleInputChange}
-                    required
-                    disabled={fetching || loading || !formData.course_id}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-8 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <option value="">Select a category</option>
-                    {categories.map(category => (
-                      <option key={category.id} value={category.id}>
-                        {getDisplayName(category)}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-                </div>
-                {formData.course_id && categories.length === 0 && !fetching && (
-                  <p className="text-xs text-gray-500 mt-1">No categories available for this course</p>
-                )}
+            {/* Category Dropdown */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
+              <div className="relative">
+                <select
+                  name="category_id"
+                  value={formData.category_id}
+                  onChange={handleInputChange}
+                  required
+                  disabled={fetching || loading || !formData.course_id}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 appearance-none pr-8 disabled:opacity-50"
+                >
+                  <option value="">Select a category</option>
+                  {categories.map(category => (
+                    <option key={category.id} value={category.id}>
+                      {getDisplayName(category)}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               </div>
             </div>
           </div>
 
-          {/* Question Section */}
+          {/* Question */}
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-              <FileText size={18} className="mr-2" /> Question (Front Side) *
-            </h3>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Question *</label>
             <textarea
               name="question"
               value={formData.question}
@@ -261,16 +259,14 @@ export default function AddFlashcardModal({ isOpen, onClose, onFlashcardAdded })
               rows={3}
               required
               disabled={loading}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed resize-none"
-              placeholder="Enter the question here"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 disabled:opacity-50 resize-none"
+              placeholder="Enter question"
             />
           </div>
 
-          {/* Answer Section */}
+          {/* Answer */}
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-              <FileText size={18} className="mr-2" /> Answer (Back Side) *
-            </h3>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Answer *</label>
             <textarea
               name="answer"
               value={formData.answer}
@@ -278,48 +274,41 @@ export default function AddFlashcardModal({ isOpen, onClose, onFlashcardAdded })
               rows={3}
               required
               disabled={loading}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed resize-none"
-              placeholder="Enter the answer here"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 disabled:opacity-50 resize-none"
+              placeholder="Enter answer"
             />
           </div>
 
-          {/* Additional Note Section */}
+          {/* Note */}
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Additional Note (Optional)</h3>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Note (Optional)</label>
             <textarea
               name="note"
               value={formData.note}
               onChange={handleInputChange}
               rows={2}
               disabled={loading}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed resize-none"
-              placeholder="Add any additional notes here"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 disabled:opacity-50 resize-none"
+              placeholder="Add note"
             />
           </div>
 
-          {/* Submit Button */}
-          <div className="flex justify-end gap-3 pt-4 border-t">
+          {/* Submit */}
+          <div className="flex justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-w-[80px]"
+              className="px-4 py-2 border rounded-lg text-gray-700 disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={loading || fetching || !formData.category_id || !formData.course_id}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 min-w-[120px] justify-center"
+              disabled={loading || fetching}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
             >
-              {loading ? (
-                <>
-                  <Loader className="w-4 h-4 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                "Create Flashcard"
-              )}
+              {loading ? <Loader className="w-4 h-4 animate-spin" /> : "Create Flashcard"}
             </button>
           </div>
         </form>
