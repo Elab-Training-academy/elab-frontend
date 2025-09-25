@@ -160,30 +160,58 @@ export default function SingleModulePage() {
             )}
           </p>
         </div>
-
-        <div className="mt-4">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <FileQuestion className="text-purple-600" size={20} />
-            Questions
-          </h2>
-
-          {module.questions.length === 0 ? (
-            <p className="text-gray-500 text-sm mt-2">
-              No questions have been added to this module yet.
-            </p>
-          ) : (
-            <ul className="mt-2 space-y-2">
-              {module.questions.map((q, idx) => (
-                <li
-                  key={idx}
-                  className="p-3 border rounded-lg bg-gray-50 text-gray-700"
+        {/* Display scheduled classes if available */}
+        <div className="mt-6">
+          <h2 className="text-lg font-semibold mb-3">Scheduled Classes</h2>
+          {module.schedule_classes && module.schedule_classes.length > 0 ? (
+            <div className="space-y-4">
+              {module.schedule_classes.map((cls, index) => (
+                <div
+                  key={index}
+                  className="p-4 border rounded-lg bg-gray-50 flex flex-col gap-2"
                 >
-                  {q.text}
-                </li>
+                  <p className="text-sm">
+                    <span className="font-semibold">Date:</span>{" "}
+                    {new Date(cls.lesson_date).toLocaleDateString()}
+                  </p>
+                  <p className="text-sm">
+                    <span className="font-semibold">Time:</span>{" "}
+                    {cls.start_time} - {cls.end_time}
+                  </p>
+                  <p className="text-sm">
+                    <span className="font-semibold">Meeting ID:</span>{" "}
+                    {cls.meeting_id}
+                  </p>
+                  <p className="text-sm">
+                    <span className="font-semibold">Password:</span>{" "}
+                    {cls.password}
+                  </p>
+                  <p className="text-sm">
+                    <span className="font-semibold">Zoom Link:</span>{" "}
+                    <a
+                      href={cls.zoom_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline"
+                    >
+                      Join Meeting
+                    </a>
+                  </p>
+                  <p
+                    className={`text-xs font-semibold ${
+                      cls.status ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
+                    {cls.status ? "Active" : "Inactive"}
+                  </p>
+                </div>
               ))}
-            </ul>
+            </div>
+          ) : (
+            <p className="text-gray-500 text-sm">No classes scheduled</p>
           )}
         </div>
+
       </div>
 
       {/* Schedule Form Modal */}
