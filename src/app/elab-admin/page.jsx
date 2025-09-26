@@ -2,6 +2,11 @@
 import { useEffect, useState } from "react";
 import { Search, Plus, BarChart2, Settings } from "lucide-react";
 
+// Import your modals
+import AddCaseStudyModal from "../../component/AddCaseStudyModal";
+import CreateCourseModal from "../../component/CreateCourseModal";
+import AddQuestionsModal from "../../component/AddQuestionModal";
+
 export default function Overview() {
   const [stats, setStats] = useState({
     total_courses: 0,
@@ -13,12 +18,18 @@ export default function Overview() {
 
   const [activities, setActivities] = useState([]);
 
+  // Modal states
+  const [isCaseStudyModalOpen, setIsCaseStudyModalOpen] = useState(false);
+  const [isCreateCourseModalOpen, setIsCreateCourseModalOpen] = useState(false);
+  const [isAddQuestionsModalOpen, setIsAddQuestionsModalOpen] = useState(false);
+
+  // Quick actions with modal triggers
   const quickActions = [
-    { label: "Manage Program", icon: <Settings size={16} /> },
-    { label: "Create New Course", icon: <Plus size={16} /> },
-    { label: "Add Questions", icon: <Plus size={16} /> },
-    { label: "Create Case studies", icon: <Plus size={16} /> },
-    { label: "View Analytics", icon: <BarChart2 size={16} /> },
+    { label: "Manage Program", icon: <Settings size={16} />, onClick: () => {} },
+    { label: "Create New Course", icon: <Plus size={16} />, onClick: () => setIsCreateCourseModalOpen(true) },
+    { label: "Add Questions", icon: <Plus size={16} />, onClick: () => setIsAddQuestionsModalOpen(true) },
+    { label: "Create Case studies", icon: <Plus size={16} />, onClick: () => setIsCaseStudyModalOpen(true) },
+    { label: "View Analytics", icon: <BarChart2 size={16} />, onClick: () => {} },
   ];
 
   useEffect(() => {
@@ -27,16 +38,14 @@ export default function Overview() {
 
     const fetchOverview = async () => {
       try {
-        const resCourse = await fetch(
-          "https://elab-server-xg5r.onrender.com/overviews/course_overview",
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const resCourse = await fetch("https://elab-server-xg5r.onrender.com/overviews/course_overview", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         const courseData = await resCourse.json();
 
-        const resUser = await fetch(
-          "https://elab-server-xg5r.onrender.com/overviews/user_overview",
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const resUser = await fetch("https://elab-server-xg5r.onrender.com/overviews/user_overview", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         const userData = await resUser.json();
 
         setStats({
@@ -53,10 +62,9 @@ export default function Overview() {
 
     const fetchOrders = async () => {
       try {
-        const res = await fetch(
-          "https://elab-server-xg5r.onrender.com/super-admin/orders/all",
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const res = await fetch("https://elab-server-xg5r.onrender.com/super-admin/orders/all", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         const data = await res.json();
         const mapped = (data || []).map((order) => ({
           action: `Course: ${order.course?.title || "Unknown"}`,
@@ -103,10 +111,7 @@ export default function Overview() {
           { label: "Total Users", value: stats.total_users },
           { label: "Active Users", value: stats.total_active_users },
         ].map((stat, idx) => (
-          <div
-            key={idx}
-            className="bg-white rounded-xl shadow-sm border p-6 flex flex-col items-center text-center"
-          >
+          <div key={idx} className="bg-white rounded-xl shadow-sm border p-6 flex flex-col items-center text-center">
             <span className="text-2xl font-bold">{stat.value}</span>
             <span className="text-gray-500 text-sm">{stat.label}</span>
           </div>
@@ -125,7 +130,7 @@ export default function Overview() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    {["Course",  "Amount", "Status", "Date"].map((col) => (
+                    {["Course", "Amount", "Status", "Date"].map((col) => (
                       <th
                         key={col}
                         className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -169,6 +174,7 @@ export default function Overview() {
             {quickActions.map((action, idx) => (
               <button
                 key={idx}
+                onClick={action.onClick}
                 className="w-full flex items-center justify-between px-4 py-2 border rounded-lg hover:bg-gray-50 transition"
               >
                 <span className="flex items-center gap-2 text-gray-700">
@@ -180,7 +186,20 @@ export default function Overview() {
           </div>
         </div>
       </div>
+
+      {/* Modals */}
+      <AddCaseStudyModal
+        isOpen={isCaseStudyModalOpen}
+        onClose={() => setIsCaseStudyModalOpen(false)}
+      />
+      <CreateCourseModal
+        isOpen={isCreateCourseModalOpen}
+        onClose={() => setIsCreateCourseModalOpen(false)}
+      />
+      <AddQuestionsModal
+        isOpen={isAddQuestionsModalOpen}
+        onClose={() => setIsAddQuestionsModalOpen(false)}
+      />
     </div>
   );
 }
-

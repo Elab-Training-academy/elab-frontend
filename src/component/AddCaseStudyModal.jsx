@@ -16,7 +16,7 @@ import {
 import { useAuthStore } from "@/store/authStore";
 import "react-quill-new/dist/quill.snow.css";
 
-// ✅ Load react-quill-new dynamically (avoids SSR issues in Next.js)
+// ✅ Load react-quill-new dynamically (avoids SSR issues in Next.js)inn,
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 export default function AddCaseStudyModal({ isOpen, onClose, onCreated }) {
