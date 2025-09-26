@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { toast } from "react-toastify";
 import {
   X,
@@ -13,6 +14,10 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
+import "react-quill-new/dist/quill.snow.css";
+
+// ✅ Load react-quill-new dynamically (avoids SSR issues in Next.js)
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 export default function AddCaseStudyModal({ isOpen, onClose, onCreated }) {
   const { url } = useAuthStore();
@@ -145,7 +150,7 @@ export default function AddCaseStudyModal({ isOpen, onClose, onCreated }) {
       oxygen_rate: formData.oxygenRate,
       temperature: formData.temperature,
       medical_history: formData.medicalHistory,
-      questions: formData.question, // ✅ user-provided question
+      questions: formData.question, // ✅ Quill value
       points: 10,
       reason: formData.reason,
       cs_answer_options: formData.cs_answer_options,
@@ -164,7 +169,7 @@ export default function AddCaseStudyModal({ isOpen, onClose, onCreated }) {
       if (res.ok) {
         const data = await res.json();
         toast.success("✅ Case Study created successfully!");
-        if (onCreated) onCreated(data); // ✅ trigger refresh in parent
+        if (onCreated) onCreated(data); 
         onClose();
       } else {
         const err = await res.json();
@@ -174,7 +179,7 @@ export default function AddCaseStudyModal({ isOpen, onClose, onCreated }) {
       toast.error("🚨 Error creating case study");
       console.error(error);
     } finally {
-      setLoading(false); // ✅ stop loading
+      setLoading(false);
     }
   };
 
@@ -261,16 +266,11 @@ export default function AddCaseStudyModal({ isOpen, onClose, onCreated }) {
             </select>
           </div>
 
-          {/* Case Description */}
-          <textarea
-            name="caseDescription"
-            value={formData.caseDescription}
-            onChange={handleInputChange}
-            rows={3}
-            placeholder="Case Description"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-            required
-          />
+         {/* Case Description */} 
+         <textarea name="caseDescription" value={formData.caseDescription} 
+         onChange={handleInputChange} rows={3}
+          placeholder="Case Description" 
+         className="w-full px-3 py-2 border border-gray-300 rounded-lg" required />
 
           {/* Patient Information */}
           <div>
@@ -367,29 +367,27 @@ export default function AddCaseStudyModal({ isOpen, onClose, onCreated }) {
             className="w-full px-3 py-2 border border-gray-300 rounded-lg"
           />
 
-          {/* ✅ Question */}
+          {/* ✅ Question (React Quill) */}
           <div>
             <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
               <HelpCircle size={18} className="mr-2" /> Question
             </h3>
-            <textarea
-              name="question"
+            <ReactQuill
+              theme="snow"
               value={formData.question}
-              onChange={handleInputChange}
-              rows={3}
-              placeholder="Enter the question for students"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              required
+              onChange={(value) =>
+                setFormData({ ...formData, question: value })
+              }
+              className="bg-white rounded-lg border min-h-[300px] sm:min-h-[350px] md:min-h-[400px] w-full text-lg"
             />
-
             <input
-                type="text"
-                name="reason"
-                value={formData.reason}
-                onChange={handleInputChange}
-                placeholder="reason"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              />
+              type="text"
+              name="reason"
+              value={formData.reason}
+              onChange={handleInputChange}
+              placeholder="Reason"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg mt-4"
+            />
           </div>
 
           {/* ✅ Answer Options */}
@@ -451,7 +449,9 @@ export default function AddCaseStudyModal({ isOpen, onClose, onCreated }) {
               type="submit"
               disabled={loading}
               className={`px-6 py-2 rounded-lg text-white ${
-                loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+                loading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
               }`}
             >
               {loading ? "Saving..." : "Save Case Study"}

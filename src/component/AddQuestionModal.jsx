@@ -1,10 +1,13 @@
-// app/components/AddQuestionModal.jsx
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
+import "react-quill-new/dist/quill.snow.css";
 import { X, Plus, Minus, Check } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAuthStore } from "@/store/authStore";
+
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 export default function AddQuestionModal({ isOpen, onClose, moduleId }) {
   const { url } = useAuthStore();
@@ -31,6 +34,11 @@ export default function AddQuestionModal({ isOpen, onClose, moduleId }) {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // React Quill handler
+  const handleQuillChange = (value) => {
+    setFormData((prev) => ({ ...prev, questionText: value }));
   };
 
   // Options handling
@@ -263,17 +271,16 @@ export default function AddQuestionModal({ isOpen, onClose, moduleId }) {
             </select>
           </div>
 
-          {/* Question text */}
+          {/* Question text with React Quill */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Question Text</label>
-            <textarea
-              name="questionText"
+            <ReactQuill
               value={formData.questionText}
-              onChange={handleInputChange}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter your question here"
-              required
+              onChange={handleQuillChange}
+              className="bg-white rounded-lg border border-gray-300 
+                         min-h-[200px] sm:min-h-[250px] md:min-h-[300px]
+                         w-full text-base"
+              theme="snow"
             />
           </div>
 

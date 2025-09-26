@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
 
 export default function AddSmartPracticeModal({ isOpen, onClose }) {
   const url = useAuthStore((state) => state.url);
@@ -67,14 +69,11 @@ export default function AddSmartPracticeModal({ isOpen, onClose }) {
         });
         if (res.ok) {
           const data = await res.json();
-        const filtered = data.filter((cat) => cat.course_id === formData.course);
-        console.log(filtered);
-        
-        setCategories(filtered);
-        }else{
-          const err = await res.json()
+          const filtered = data.filter((cat) => cat.course_id === formData.course);
+          setCategories(filtered);
+        } else {
+          const err = await res.json();
           console.log("error fetching", err);
-          
         }
       } catch (err) {
         console.error("Error fetching categories:", err);
@@ -172,13 +171,15 @@ export default function AddSmartPracticeModal({ isOpen, onClose }) {
           {/* Question */}
           <div>
             <label className="block text-sm font-medium">Question</label>
-            <textarea
-              className="w-full border rounded p-2"
+            <ReactQuill
+              theme="snow"
               value={formData.questionText}
-              onChange={(e) =>
-                setFormData({ ...formData, questionText: e.target.value })
+              onChange={(value) =>
+                setFormData({ ...formData, questionText: value })
               }
-              required
+              className="bg-white   rounded-lg shadow-md border border-gray-200
+                   min-h-[300px] sm:min-h-[350px] md:min-h-[400px] 
+                   w-full text-lg"  
             />
           </div>
 
@@ -311,16 +312,11 @@ export default function AddSmartPracticeModal({ isOpen, onClose }) {
           </div>
 
           {/* Explanation */}
-          <div>
+          <div> 
             <label className="block text-sm font-medium">Explanation</label>
-            <textarea
-              className="w-full border rounded p-2"
-              value={formData.explanation}
-              onChange={(e) =>
-                setFormData({ ...formData, explanation: e.target.value })
-              }
-            />
-          </div>
+           <textarea className="w-full border rounded p-2" value={formData.explanation} 
+           onChange={(e) => setFormData({ ...formData, explanation: e.target.value }) } /> 
+           </div>
 
           {/* Hint */}
           <div>
