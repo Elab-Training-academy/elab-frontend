@@ -1,99 +1,3 @@
-// "use client";
-
-// import React, { useEffect, useState } from "react";
-// import { Loader2 } from "lucide-react";
-// import { useRouter } from "next/navigation";
-
-// export default function CourseCategories() {
-//   const [categories, setCategories] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-//   const router = useRouter();
-
-//   useEffect(() => {
-//     const fetchCategories = async () => {
-//       try {
-//         const token = localStorage.getItem("token");
-//         if (!token) return;
-
-//         const res = await fetch(
-//           "https://elab-server-xg5r.onrender.com/course-categories",
-//           { headers: { Authorization: `Bearer ${token}` } }
-//         );
-
-//         if (!res.ok) throw new Error("Failed to fetch categories");
-//         const data = await res.json();
-//         setCategories(data);
-//       } catch (err) {
-//         setError(err.message || "Something went wrong");
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchCategories();
-//   }, []);
-
-//   if (loading) {
-//     return (
-//       <div className="flex justify-center items-center h-64">
-//         <Loader2 className="animate-spin h-6 w-6 text-blue-600" />
-//         <span className="ml-2 text-gray-700 font-medium">
-//           Loading categories...
-//         </span>
-//       </div>
-//     );
-//   }
-
-//   if (error) {
-//     return <p className="text-red-500 text-center mt-6">Error: {error}</p>;
-//   }
-
-//   return (
-//     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-//       {/* Title */}
-//       <h1 className="text-3xl font-bold text-center text-gray-900 mb-10">
-//         📚 Course Categories
-//       </h1>
-
-//       {categories.length === 0 ? (
-//         <p className="text-gray-500 text-center">No categories available</p>
-//       ) : (
-//         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-//           {categories.map((cat) => (
-//             <div
-//               key={cat.id}
-//               className="bg-white shadow-md hover:shadow-xl transition-all duration-300 rounded-2xl border border-gray-200 p-6 flex flex-col justify-between"
-//             >
-//               {/* Category Title */}
-//               <div>
-//                 <h2 className="text-xl font-semibold text-gray-800 mb-2">
-//                   {cat.name}
-//                 </h2>
-//                 <p className="text-gray-600 text-sm line-clamp-3 mb-6">
-//                   {cat.description || "No description provided."}
-//                 </p>
-//               </div>
-
-//               {/* Action Button */}
-//               <button
-//                 onClick={() =>
-//                   router.push(`/elab-admin/course-category/${cat.id}`)
-//                 }
-//                 className="w-full mt-auto px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow hover:bg-blue-700 transition-colors"
-//               >
-//                 View Courses →
-//               </button>
-//             </div>
-//           ))}
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
-
-
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -171,8 +75,19 @@ export default function CourseCategoriesPage() {
 
   // ✅ Fetch categories
   useEffect(() => {
+    // check if token is expired
     const token = localStorage.getItem("token");
-    if (!token) return;
+    if (!token){
+      window.location.href = "/login"
+      return;
+    }
+
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const currentTime = Math.floor(Date.now() / 1000);
+    if (payload.exp < currentTime) {
+      alert("Session Expired, pls login to continue.");
+      return window.location.href = "/login"
+    }
 
     const fetchCategories = async () => {
       try {

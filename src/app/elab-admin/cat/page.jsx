@@ -7,6 +7,22 @@ export default function CatPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+
+    // check if token is expired
+    const token = localStorage.getItem("token");
+    if (!token){
+      window.location.href = "/login"
+      return;
+    }
+
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const currentTime = Math.floor(Date.now() / 1000);
+    if (payload.exp < currentTime) {
+      alert("Session Expired, pls login to continue.");
+      return window.location.href = "/login"
+    }
+
+    
     const fetchTests = async () => {
       try {
         const res = await fetch(
@@ -69,8 +85,8 @@ export default function CatPage() {
           </div>
           <select className="border rounded-lg py-2 px-3 text-sm">
             <option>All Categories</option>
-            {Array.from(new Set(tests.map((t) => t.category))).map((cat) => (
-              <option key={cat}>{cat}</option>
+            {Array.from(new Set(tests.map((t) => t.category))).map((cat, i) => (
+              <option key={i}>{cat}</option>
             ))}
           </select>
         </div>

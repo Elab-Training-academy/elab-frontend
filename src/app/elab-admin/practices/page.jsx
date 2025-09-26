@@ -68,8 +68,19 @@ export default function SmartPracticePage() {
   // ✅ Fetch all smart practice questions
   useEffect(() => {
     const fetchAllSmartPractice = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) return;
+      // check if token is expired
+    const token = localStorage.getItem("token");
+    if (!token){
+      window.location.href = "/login"
+      return;
+    }
+
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const currentTime = Math.floor(Date.now() / 1000);
+    if (payload.exp < currentTime) {
+      alert("Session Expired, pls login to continue.");
+      return window.location.href = "/login"
+    }
       try {
         setLoading(true);
         const res = await fetch(`${url}/sp-questions/`, {

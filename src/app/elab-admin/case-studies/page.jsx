@@ -38,7 +38,18 @@ export default function CaseStudies() {
   useEffect(() => {
     const fetchCaseStudies = async () => {
       const token = localStorage.getItem("token");
-      if (!token) return;
+      if (!token){
+        window.location.href = "/login"
+        return;
+      };
+
+      // check if token is expired
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+      if (payload.exp < currentTime) {
+        alert("Session Expired, pls login to continue.");
+        return window.location.href = "/login"
+      }
 
       try {
         const res = await fetch("https://elab-server-xg5r.onrender.com/case-studies", {
