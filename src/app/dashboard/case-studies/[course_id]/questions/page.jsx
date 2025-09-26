@@ -159,7 +159,8 @@ export default function CaseStudyQuestions() {
             className="mb-8 p-4 border border-gray-200 rounded-lg shadow-sm"
           >
             <h2 className="text-lg font-semibold mb-3">
-              {index + 1}. {q.questions}
+              <div dangerouslySetInnerHTML={{ __html: `${index + 1}. ${q.questions}` }} />
+              
             </h2>
 
             <div className="space-y-2">

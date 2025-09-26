@@ -217,9 +217,9 @@ const FlashcardPage = () => {
             >
               {/* Front */}
               <div className="absolute inset-0 bg-white shadow-lg rounded-xl p-6 flex items-center justify-center text-center backface-hidden">
-                <p className="text-gray-800 font-semibold text-lg">
-                  {filteredFlashcards[currentIndex].question}
-                </p>
+                <div className="text-gray-800 font-semibold text-lg">
+                  <div dangerouslySetInnerHTML={{ __html: filteredFlashcards[currentIndex].question}} />
+                </div>
               </div>
               {/* Back */}
               <div className="absolute inset-0 bg-blue-600 text-white rounded-xl p-6 flex flex-col items-center justify-center text-center rotate-y-180 backface-hidden">

@@ -11,16 +11,21 @@ const AIStudyCompanionPage = () => {
   const [input, setInput] = useState("");
   const [file, setFile] = useState(null);
   const fileInputRef = useRef(null);
-  const messagesEndRef  = useRef(null);
+  const messagesEndRef = useRef(null);
 
-  const { messages, sendChat, loading, user, fetchUser} = useAuthStore();
+  const { messages, sendChat, loading, user, fetchUser } = useAuthStore();
 
-  // Auto-scroll to latest message
+  // Run fetchUser once when component mounts
   useEffect(() => {
     fetchUser();
-    
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading, fetchUser, user]);
+  }, [fetchUser]);
+
+  // Auto-scroll only when new messages arrive
+  useEffect(() => {
+    if (messages && messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
 
   const handleSend = async () => {
     if (!input.trim() && !file) return;
@@ -42,6 +47,45 @@ const AIStudyCompanionPage = () => {
       <div className="flex flex-col items-start">
         <p className="text-[30px] font-semibold text-blue-600">AI Study Companion</p>
         <p className="text-gray-500 text-[14px]">Smart help when you need it, 24/7.</p>
+      </div>
+
+      {/* Input Section */}
+      <div className="bg-white shadow rounded-full flex items-center gap-3 px-4 py-2 w-full max-w-2xl mx-auto mt-4">
+        <button className="text-gray-500 hover:text-blue-600">
+          <Mic size={22} />
+        </button>
+
+        <input
+          type="text"
+          placeholder="Ask me anything..."
+          className="flex-1 border-none outline-none p-4 px-2 text-gray-700"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSend()}
+        />
+
+        {/* File Upload */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          onChange={handleFileChange}
+        />
+        <button
+          className={`text-gray-500 hover:text-blue-600 ${file ? "text-blue-600" : ""}`}
+          onClick={() => fileInputRef.current.click()}
+        >
+          <Paperclip size={22} />
+        </button>
+
+        {/* Send Button */}
+        <button
+          className="text-blue-600 hover:text-blue-800 disabled:opacity-50"
+          onClick={handleSend}
+          disabled={loading}
+        >
+          {loading ? <Loader2 size={22} className="animate-spin" /> : <Send size={22} />}
+        </button>
       </div>
 
       {/* Chat Section */}
@@ -82,47 +126,6 @@ const AIStudyCompanionPage = () => {
 
         {/* Auto scroll anchor */}
         <div ref={messagesEndRef} />
-      </div>
-
-      {/* Input Section */}
-      <div className="bg-white shadow rounded-full flex items-center gap-3 px-4 py-2 w-full max-w-2xl mx-auto mt-4">
-        <button className="text-gray-500 hover:text-blue-600">
-          <Mic size={22} />
-        </button>
-
-        <input
-          type="text"
-          placeholder="Ask me anything..."
-          className="flex-1 border-none outline-none p-4 px-2 text-gray-700"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSend()}
-        />
-
-        {/* File Upload */}
-        <input
-          type="file"
-          ref={fileInputRef}
-          className="hidden"
-          onChange={handleFileChange}
-        />
-        <button
-          className={`text-gray-500 hover:text-blue-600 ${
-            file ? "text-blue-600" : ""
-          }`}
-          onClick={() => fileInputRef.current.click()}
-        >
-          <Paperclip size={22} />
-        </button>
-
-        {/* Send Button */}
-        <button
-          className="text-blue-600 hover:text-blue-800 disabled:opacity-50"
-          onClick={handleSend}
-          disabled={loading}
-        >
-          {loading ? <Loader2 size={22} className="animate-spin" /> : <Send size={22} />}
-        </button>
       </div>
 
       {/* Show selected file preview */}

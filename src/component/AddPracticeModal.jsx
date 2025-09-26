@@ -177,9 +177,7 @@ export default function AddSmartPracticeModal({ isOpen, onClose }) {
               onChange={(value) =>
                 setFormData({ ...formData, questionText: value })
               }
-              className="bg-white   rounded-lg shadow-md border border-gray-200
-                   min-h-[300px] sm:min-h-[350px] md:min-h-[400px] 
-                   w-full text-lg"  
+              className="bg-white   rounded-lg shadow-md border border-gray-200 w-full text-lg"  
             />
           </div>
 

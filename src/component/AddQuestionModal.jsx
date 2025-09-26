@@ -277,9 +277,7 @@ export default function AddQuestionModal({ isOpen, onClose, moduleId }) {
             <ReactQuill
               value={formData.questionText}
               onChange={handleQuillChange}
-              className="bg-white rounded-lg border border-gray-300 
-                         min-h-[200px] sm:min-h-[250px] md:min-h-[300px]
-                         w-full text-base"
+              className="bg-white rounded-lg border border-gray-300 w-full text-base"
               theme="snow"
             />
           </div>

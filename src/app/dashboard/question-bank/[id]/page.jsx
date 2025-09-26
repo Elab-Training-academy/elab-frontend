@@ -345,7 +345,7 @@ const QuestionPage = ({ params }) => {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">
-                {currentIndex + 1}. {currentQuestion.question_text}
+                <div dangerouslySetInnerHTML={{ __html: currentQuestion.question_text }} />
               </h2>
               <span className="px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-700">
                 {currentQuestion.answer_type}

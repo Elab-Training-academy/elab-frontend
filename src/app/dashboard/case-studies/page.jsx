@@ -19,6 +19,7 @@ export default function CaseStudiesPage() {
   const [caseStudy, setCaseStudy] = useState(null);
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [loadingCaseStudy, setLoadingCaseStudy] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { user, fetchUser } = useAuthStore();
 
   const url = useAuthStore((state) => state.url);
@@ -87,6 +88,14 @@ export default function CaseStudiesPage() {
 
     fetchCaseStudy();
   }, [selectedCourse, url]);
+
+  function handleGotoCaseStudy() {
+    if (selectedCourse) {
+      setLoading(true);
+      router.push(`/dashboard/case-studies/${selectedCourse}/questions`);
+    }
+    setLoading(false);
+  }
 
   return (
     <div className="flex flex-col w-full min-h-screen p-6 bg-gray-100 gap-10">
@@ -192,12 +201,11 @@ export default function CaseStudiesPage() {
               {/* Start Button */}
               <div className="text-center">
                 <button
-                  onClick={() =>
-                    router.push(`/dashboard/case-studies/${selectedCourse}/questions`)
-                  }
+                  onClick={handleGotoCaseStudy}
                   className="mt-4 border-2 border-[#7e7d7d] text-black p-2 w-[200px] rounded-[13px] hover:bg-blue-600 hover:text-white transition"
+                  disabled={loading}
                 >
-                  Start Case Study →
+                  {loading ? "Loading..." : "Start Case Study →"}
                 </button>
               </div>
             </>

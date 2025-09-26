@@ -342,7 +342,7 @@ const submitAnswer = async (questionId, text_answer) => {
           <div className="mt-6 space-y-6">
             {questions.map((q) => (
               <div key={q.id} className="p-6 bg-white rounded-xl shadow">
-                <h3 className="font-semibold text-lg mb-4">{q.question}</h3>
+                <h3 className="font-semibold text-lg mb-4"><div dangerouslySetInnerHTML={{__html:q.question}} /></h3>
 
                 {/* Render answers depending on question type */}
 {q.question_type === "fill_gap" ? (

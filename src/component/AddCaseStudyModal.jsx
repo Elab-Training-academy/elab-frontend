@@ -267,10 +267,22 @@ export default function AddCaseStudyModal({ isOpen, onClose, onCreated }) {
           </div>
 
          {/* Case Description */} 
-         <textarea name="caseDescription" value={formData.caseDescription} 
+         {/* <textarea name="caseDescription" value={formData.caseDescription} 
          onChange={handleInputChange} rows={3}
           placeholder="Case Description" 
-         className="w-full px-3 py-2 border border-gray-300 rounded-lg" required />
+         className="w-full px-3 py-2 border border-gray-300 rounded-lg" required /> */}
+         <div>
+          <label htmlFor="" className=" mt-4">Case Study Description</label>
+         <ReactQuill
+              theme="snow"
+              value={formData.caseDescription}
+              onChange={(value) =>
+                setFormData({ ...formData, caseDescription: value })
+              }
+              className="bg-white rounded-lg border w-full text-lg"
+            />
+
+          </div>
 
           {/* Patient Information */}
           <div>
@@ -378,7 +390,7 @@ export default function AddCaseStudyModal({ isOpen, onClose, onCreated }) {
               onChange={(value) =>
                 setFormData({ ...formData, question: value })
               }
-              className="bg-white rounded-lg border min-h-[300px] sm:min-h-[350px] md:min-h-[400px] w-full text-lg"
+              className="bg-white rounded-lg border w-full text-lg"
             />
             <input
               type="text"
