@@ -1,7 +1,13 @@
 "use client";
+
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { toast } from "react-toastify";
 import { useAuthStore } from "@/store/authStore";
+
+// Dynamic import of ReactQuill for SSR
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
+import "react-quill-new/dist/quill.snow.css";
 
 export default function EditQuestionModal({ isOpen, onClose, question, onUpdated }) {
   const { url } = useAuthStore();
@@ -16,7 +22,7 @@ export default function EditQuestionModal({ isOpen, onClose, question, onUpdated
   });
   const [preview, setPreview] = useState(null);
 
-  // ✅ Pre-fill when editing
+  // Pre-fill when editing
   useEffect(() => {
     if (question) {
       setFormData({
@@ -33,9 +39,8 @@ export default function EditQuestionModal({ isOpen, onClose, question, onUpdated
 
   if (!isOpen) return null;
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleOptionChange = (index, field, value) => {
@@ -60,47 +65,43 @@ export default function EditQuestionModal({ isOpen, onClose, question, onUpdated
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  const token = localStorage.getItem("token");
-  if (!token) return;
-setLoading(true)
-  try {
-    const body = new FormData();
+    e.preventDefault();
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    setLoading(true);
+    try {
+      const body = new FormData();
 
-    // only append module_id if valid
-    if (formData.module_id && formData.module_id.length > 10) {
-      body.append("module_id", formData.module_id);
+      if (formData.module_id && formData.module_id.length > 10) {
+        body.append("module_id", formData.module_id);
+      }
+
+      body.append("question_text", formData.question_text);
+      body.append("answer_type", formData.answer_type);
+      body.append("points", formData.points);
+      body.append("answer_options", JSON.stringify(formData.answer_options));
+      if (formData.image) body.append("image", formData.image);
+
+      const res = await fetch(`${url}/questions/${question.id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body,
+      });
+
+      if (!res.ok) throw new Error("Failed to update question");
+
+      const updated = await res.json();
+      toast.success("Question updated successfully");
+      onUpdated(updated);
+      onClose();
+    } catch (error) {
+      console.error(error);
+      toast.error("Error updating question");
+      setLoading(false);
     }
-
-    body.append("question_text", formData.question_text);
-    body.append("answer_type", formData.answer_type);
-    body.append("points", formData.points);
-    body.append("answer_options", JSON.stringify(formData.answer_options));
-    if (formData.image) {
-      body.append("image", formData.image);
-    }
-
-    const res = await fetch(`${url}/questions/${question.id}`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body,
-    });
-
-    if (!res.ok) throw new Error("Failed to update question");
-
-    const updated = await res.json();
-    toast.success("Question updated successfully");
-    onUpdated(updated);
-    onClose();
-  } catch (error) {
-    console.error(error);
-    toast.error("Error updating question");
-    setLoading(false)
-  }
-};
-
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -109,14 +110,12 @@ setLoading(true)
 
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
           {/* Question Text */}
-          <input
-            type="text"
-            name="question_text"
+          <label className="block mb-1 font-medium">Question</label>
+          <ReactQuill
             value={formData.question_text}
-            onChange={handleChange}
-            placeholder="Enter question text"
-            className="w-full border rounded p-2"
-            required
+            onChange={(value) => handleChange("question_text", value)}
+            theme="snow"
+            className="mb-4"
           />
 
           {/* Points */}
@@ -124,7 +123,7 @@ setLoading(true)
             type="number"
             name="points"
             value={formData.points}
-            onChange={handleChange}
+            onChange={(e) => handleChange("points", Number(e.target.value))}
             placeholder="Points"
             className="w-full border rounded p-2"
           />
@@ -168,30 +167,22 @@ setLoading(true)
                 className="w-32 h-32 object-cover mb-2 rounded border"
               />
             )}
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="w-full"
-            />
+            <input type="file" accept="image/*" onChange={handleImageChange} className="w-full" />
           </div>
 
           {/* Buttons */}
           <div className="flex justify-end gap-2 mt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-300 rounded"
-            >
+            <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className={`px-4 py-2 bg-green-600 text-white rounded ${
-                loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700" }`}
+              className={`px-4 py-2 text-white rounded ${
+                loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+              }`}
             >
-              {loading ? "Save ...." : "Save Change"}
+              {loading ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>

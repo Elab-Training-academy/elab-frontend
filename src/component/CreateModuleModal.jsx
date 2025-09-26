@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { toast } from "react-toastify";
+import dynamic from "next/dynamic";
 
+
+// ✅ Load react-quill-new dynamically (avoids SSR issues in Next.js)
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 export default function CreateModuleModal({ isOpen, onClose, courseId, onModuleCreated }) {
   const [formData, setFormData] = useState({
@@ -81,14 +85,25 @@ export default function CreateModuleModal({ isOpen, onClose, courseId, onModuleC
             className="w-full border px-3 py-2 rounded"
             required
           />
-          <input
+          {/* <input
             name="description"
             value={formData.description}
             onChange={handleChange}
             placeholder="Module Description"
             className="w-full border px-3 py-2 rounded"
             required
+          /> */}
+          <div className="mb-2">
+          <label htmlFor="">Module Study Material</label>
+           <ReactQuill
+            theme="snow"
+            value={formData.description}
+            placeholder="Module Study Material"
+            onChange={(value) => setFormData(prev => ({ ...prev, description: value }))}
+            className="mb-3"
           />
+          </div>
+
           <input
             name="order_number"
             type="number"

@@ -3,6 +3,11 @@
 
 import { useState, useEffect } from "react";
 import { X, FileText, Loader } from 'lucide-react';
+import dynamic from "next/dynamic";
+
+
+// ✅ Load react-quill-new dynamically (avoids SSR issues in Next.js)
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 export default function EditFlashcardModal({ 
   isOpen, 
@@ -81,7 +86,14 @@ export default function EditFlashcardModal({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Question
             </label>
-            <textarea
+
+            <ReactQuill
+              theme="snow"
+              value={formData.question}
+              onChange={(value) => setFormData(prev => ({ ...prev, question: value }))}
+              className="mb-3"
+            />
+            {/* <textarea
               name="question"
               value={formData.question}
               onChange={handleInputChange}
@@ -89,7 +101,7 @@ export default function EditFlashcardModal({
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               placeholder="Enter the question"
-            />
+            /> */}
           </div>
 
           <div className="mb-6">

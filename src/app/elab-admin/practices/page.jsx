@@ -9,6 +9,7 @@ import { FaTrashAlt, FaEdit } from "react-icons/fa";
 import Link from "next/link";
 import { toast } from "react-toastify";
 
+
 export default function SmartPracticePage() {
   const url = useAuthStore((state) => state.url);
   const token = useAuthStore((state) => state.token);
