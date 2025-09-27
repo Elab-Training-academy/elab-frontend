@@ -20,6 +20,11 @@ const SchedulePage = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Failed to fetch schedule");
+        if(data?.detail === "Class not scheduled for this module yet") {
+          setSchedule(null);
+          return;
+        }
         setSchedule(data);
       } catch (error) {
         console.error("Error fetching schedule:", error);
@@ -184,7 +189,12 @@ const SchedulePage = () => {
                 <h2 className="text-2xl font-bold text-gray-800 mb-4">
                   {schedule.module.title}
                 </h2>
-                <p className="text-gray-600 mb-4">{schedule.module.description}</p>
+                <div className="text-gray-600 mb-4">
+                  <div
+                    dangerouslySetInnerHTML={{ __html: schedule.module.description }}
+                    className="prose max-w-none"
+                  />
+                </div>
                 {schedule.module.material_link && (
                   <a
                     href={schedule.module.material_link}

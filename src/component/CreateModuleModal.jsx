@@ -73,8 +73,8 @@ export default function CreateModuleModal({ isOpen, onClose, courseId, onModuleC
 
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 overflow-y-scroll">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md overflow-y-scroll">
         <h2 className="text-xl font-bold mb-4">Create Module</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
@@ -134,8 +134,7 @@ export default function CreateModuleModal({ isOpen, onClose, courseId, onModuleC
           <input 
             type="file" 
             name="material" 
-            onChange={handleFileChange}
-            required 
+            onChange={handleFileChange} 
           />
 
           <div className="flex justify-end gap-2">
