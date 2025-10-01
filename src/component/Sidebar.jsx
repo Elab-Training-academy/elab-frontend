@@ -14,6 +14,7 @@ import {
   Layers,
   BarChart3,
   Trophy,
+  Stethoscope,
   User,
   LogOut,
   X,
@@ -22,6 +23,7 @@ import {
 const menuItems = [
   { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { name: "My Courses", path: "/dashboard/my-courses", icon: BookOpen },
+    { name: "NCLEX- RN CAT", path: "/dashboard/Cat", icon: Stethoscope },
   { name: "AI Study Companion", path: "/dashboard/ai-study-companion", icon: Bot },
   { name: "Exam Readiness", path: "/dashboard/exam-readines", icon: ClipboardCheck },
   { name: "Question Bank", path: "/dashboard/question-bank", icon: HelpCircle },

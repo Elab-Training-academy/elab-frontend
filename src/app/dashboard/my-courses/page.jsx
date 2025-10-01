@@ -1,6 +1,3 @@
-
-
-
 "use client";
 import React, { useEffect, useState } from "react";
 import { Search, Bell, ChevronRight } from "lucide-react";
@@ -8,195 +5,108 @@ import { RadialBarChart, RadialBar, ResponsiveContainer } from "recharts";
 import { useParams } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import Link from "next/link";
-import { toast } from "react-toastify";
 
 const NCLEXCourseDashboard = () => {
   const { id } = useParams();
-  const url = useAuthStore((state) => state.url);
   const [coursesOrders, setCoursesOrders] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [progressData, setProgressData] = useState({});
   const [loadingProgress, setLoadingProgress] = useState(true);
   const [modules, setModules] = useState([]);
   const [loadingModules, setLoadingModules] = useState(false);
-  const { user, fetchUser } = useAuthStore();
+  const { fetchUser } = useAuthStore();
 
-  // ✅ Fetch Ordered Courses
+  // Fetch Ordered Courses
   useEffect(() => {
     const fetchCourses = async () => {
-
       try {
         fetchUser();
-
         const token = localStorage.getItem("token");
-        if (!token) {
-          console.error("No token found");
-          setCoursesOrders([]);
-          return;
-        }
-
+        if (!token) return;
         const res = await fetch(
           "https://elab-server-xg5r.onrender.com/orders/ordered-courses",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-            
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
-
-       
-        if (!res.ok) {
-          console.error("Failed to fetch ordered courses:", res.status);
-          setCoursesOrders([]);
-          return;
-        }
-
+        if (!res.ok) return;
         const data = await res.json();
         setCoursesOrders(data);
-      } catch (error) {
-        console.error("Error fetching ordered courses:", error);
-        setCoursesOrders([]);
+      } catch {
       } finally {
         setLoadingCourses(false);
       }
     };
-
     fetchCourses();
   }, []);
 
-  // ✅ Fetch Course Progress
+  // Fetch Course Progress
   useEffect(() => {
     const fetchProgress = async () => {
       try {
         const token = localStorage.getItem("token");
-        if (!token) {
-          console.error("No token found");
-          setProgressData({});
-          return;
-        }
-
+        if (!token) return;
         const res = await fetch(
           "https://elab-server-xg5r.onrender.com/progress/courses",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-            
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
-        
-
-        if (!res.ok) {
-          const err = await res.json();
-          console.log(err);
-          setProgressData({});
-          return;
-        }
-
+        if (!res.ok) return;
         const data = await res.json();
-        console.log(data);
-        
-
-        // Convert to dictionary {courseId: progressPercent}
         const progressMap = {};
         data.forEach((item) => {
           progressMap[item.course_id] = item.progress_percentage;
         });
-
         setProgressData(progressMap);
-      } catch (error) {
-        console.error("Error fetching course progress:", error);
-        setProgressData({});
+      } catch {
       } finally {
         setLoadingProgress(false);
       }
     };
-
     fetchProgress();
   }, []);
 
-  // ✅ Fetch Modules for a specific course
+  // Fetch Modules for a specific course
   useEffect(() => {
     const fetchModules = async () => {
       try {
         setLoadingModules(true);
         const token = localStorage.getItem("token");
-        if (!token || !id) {
-          console.error("No token or course ID found");
-          setModules([]);
-          return;
-        }
-
-        // Correct URL format based on your example
+        if (!token || !id) return;
         const moduleRes = await fetch(
           `https://elab-server-xg5r.onrender.com/courses/modules/${id}`,
           {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           }
         );
-
-        
-        if (!moduleRes.ok) {
-          console.error("Failed to fetch modules:", moduleRes.status);
-          setModules([]);
-          return;
-        }
-
+        if (!moduleRes.ok) return;
         const moduleData = await moduleRes.json();
         setModules(moduleData);
-      } catch (error) {
-        console.error("Error fetching modules:", error);
-        setModules([]);
+      } catch {
       } finally {
         setLoadingModules(false);
       }
     };
-
-    if (id) {
-      fetchModules();
-    }
+    if (id) fetchModules();
   }, [id]);
 
-  // Display modules data in the UI
   const renderModulesInfo = () => {
     if (!id) return null;
-    
-    if (loadingModules) {
-      return (
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-            📚 Course Modules
-          </h2>
-          <p className="text-gray-500">Loading modules...</p>
-        </div>
-      );
-    }
-    
-    if (modules.length === 0) {
-      return (
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-            📚 Course Modules
-          </h2>
-          <p className="text-gray-500">No modules found for this course.</p>
-        </div>
-      );
-    }
-    
+    if (loadingModules) return <p className="text-gray-500">Loading modules...</p>;
+    if (modules.length === 0) return <p className="text-gray-500">No modules found for this course.</p>;
+
     return (
-      <div className="mb-8">
+      <div>
         <h2 className="text-2xl font-semibold text-gray-900 mb-4">
           📚 Course Modules ({modules.length})
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           {modules.map((module, index) => (
             <div key={module.id || index} className="bg-white p-4 rounded-lg shadow">
               <h3 className="font-semibold text-lg text-blue-600 mb-2">
-                {module.title || `Module ${index + 1}`}
+                <Link href={`/dashboard/my-courses/${id}/modules/${module.id}`}>
+                  {module.title || `Module ${index + 1}`}
+                </Link>
               </h3>
               <p className="text-gray-600 text-sm mb-2">
-                {module.description || 'No description available'}
+                {module.description || "No description available"}
               </p>
               {module.duration && (
                 <p className="text-gray-500 text-xs">
@@ -215,15 +125,13 @@ const NCLEXCourseDashboard = () => {
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                placeholder="Search your courses..."
-                className="pl-10 pr-4 py-2 w-80 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
-              />
-            </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Search your courses..."
+              className="pl-10 pr-4 py-2 w-80 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
+            />
           </div>
           <Bell className="w-6 h-6 text-gray-600 cursor-pointer hover:text-blue-600 transition-colors" />
         </div>
@@ -247,18 +155,22 @@ const NCLEXCourseDashboard = () => {
           </p>
         </div>
 
-        {/* Display modules information if a course ID is present */}
-        {renderModulesInfo()}
+        
 
-        {/* ===================== Ordered Courses ===================== */}
+        {/* Ordered Courses */}
         <div className="mb-12">
           <div className="flex lg:items-center lg:justify-between mb-6 lg:flex-row flex-col">
             <h2 className="text-2xl font-semibold text-gray-900 mb-2 lg:mb-0">
-            🎓 My Ordered Courses
+              🎓 My Ordered Courses
             </h2>
-
-            <button className="bg-blue-500 px-2 py-2 rounded-md text-white font-bold" onClick={()=>{window.location.href='/ExamPrep'}}>Enroll for new course</button>
+            <button
+              className="bg-blue-500 px-2 py-2 rounded-md text-white font-bold"
+              onClick={() => { window.location.href = "/ExamPrep"; }}
+            >
+              Enroll for new course
+            </button>
           </div>
+
           {loadingCourses || loadingProgress ? (
             <p className="text-gray-500">Loading your courses...</p>
           ) : coursesOrders.length === 0 ? (
@@ -267,54 +179,53 @@ const NCLEXCourseDashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {coursesOrders.map((course) => {
                 const progress = progressData[course.id] || 0;
-                const chartData = [
-                  { name: "Progress", value: progress, fill: "#2563EB" },
-                ];
+                const chartData = [{ name: "Progress", value: progress, fill: "#2563EB" }];
 
                 return (
-                  <Link key={course.id} href={`/dashboard/my-courses/${course.id}`}>
-                  {/* <Link key={course.id} href={`/dashboard/my-courses/${id}/modules`}> */}
-                    <div className="p-6 bg-white border border-gray-200 rounded-xl shadow hover:shadow-md transition flex flex-col justify-between cursor-pointer">
-                      <div>
-                        <h3 className="text-lg font-semibold text-blue-600 mb-2">
+                  <div
+                    key={course.id}
+                    className="p-6 bg-white border border-gray-200 rounded-xl shadow hover:shadow-md transition flex justify-between"
+                  >
+                    <div>
+                      <h3 className="text-lg font-semibold text-blue-600 mb-2">
+                        <Link href={`/dashboard/my-courses/${course.id}`}>
                           {course.title || "Unnamed Course"}
-                        </h3>
-                        <p className="text-gray-600 text-sm mb-4">
-                          {course.description?.slice(0, 100) || "No description"}...
+                        </Link>
+                      </h3>
+                      <p className="text-gray-600 text-sm mb-4">
+                        {course.description?.slice(0, 100) || "No description"}...
+                      </p>
+                      {course.total_modules && (
+                        <p className="text-gray-600 text-sm mb-2">
+                          📘 {course.total_modules} Modules
                         </p>
-                        {course.total_modules && (
-                          <p className="text-gray-600 text-sm mb-4">
-                            📘 {course.total_modules} Modules
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="flex flex-col items-center">
-                        <div className="w-28 h-28">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <RadialBarChart
-                              innerRadius="70%"
-                              outerRadius="100%"
-                              barSize={12}
-                              data={chartData}
-                              startAngle={90}
-                              endAngle={90 + (360 * progress) / 100}
-                            >
-                              <RadialBar
-                                minAngle={15}
-                                dataKey="value"
-                                background
-                                cornerRadius={8}
-                              />
-                            </RadialBarChart>
-                          </ResponsiveContainer>
-                        </div>
-                        <span className="mt-2 text-sm font-medium text-gray-700">
-                          {progress}% Completed
-                        </span>
-                      </div>
+                      )}
+                        <p className="text-gray-600 text-sm mb-2">
+                      <Link href="/dashboard/Cat/">
+                          📝 {course.has_cat ? "Includes CAT" : "No CAT"}
+                      </Link>
+                        </p>
                     </div>
-                  </Link>
+                    <div className="flex flex-col items-center">
+                      <div className="w-28 h-28">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <RadialBarChart
+                            innerRadius="70%"
+                            outerRadius="100%"
+                            barSize={12}
+                            data={chartData}
+                            startAngle={90}
+                            endAngle={90 + (360 * progress) / 100}
+                          >
+                            <RadialBar minAngle={15} dataKey="value" background cornerRadius={8} />
+                          </RadialBarChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <span className="mt-2 text-sm font-medium text-gray-700">
+                        {progress}% Completed
+                      </span>
+                    </div>
+                  </div>
                 );
               })}
             </div>

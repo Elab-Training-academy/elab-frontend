@@ -67,7 +67,7 @@ export default function Overview() {
         });
         const data = await res.json();
         const mapped = (data || []).map((order) => ({
-          action: `Course: ${order.course?.title || "Unknown"}`,
+          action: `${order.course?.title || "Unknown"}`,
           amount: order.amount,
           status: order.status,
           time: new Date(order.created_at).toLocaleString(),
