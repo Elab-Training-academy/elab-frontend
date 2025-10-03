@@ -17,6 +17,7 @@ const CreateCourseModal = ({ isOpen, onClose, onSubmit }) => {
   const [duration, setDuration] = useState("");
   const [status, setStatus] = useState("");
   const [price, setPrice] = useState("");
+  const [has_cat, setHas_cat] = useState(null);
   const [category, setCategory] = useState(""); // 👈 selected category ID
   // ✅ categories list
   const [categories, setCategories] = useState([]);
@@ -58,6 +59,7 @@ const handleSubmit = async (e) => {
   formData.append("status", status);
   formData.append("price", price);
   formData.append("category_id", category);
+  formData.append("has_cat", has_cat);
 
   console.log("Submitting payload (FormData):", Object.fromEntries(formData));
 
@@ -191,6 +193,19 @@ const handleSubmit = async (e) => {
                 <option value="">Select Status</option>
                 <option value="Draft">Draft</option>
                 <option value="Published">Published</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium">CAT Inclussive</label>
+              <select
+                value={has_cat}
+                onChange={(e) => setHas_cat(e.target.value)}
+                required
+                className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select CAT Option</option>
+                <option value="true">Yes</option>
+                <option value="false">No</option>
               </select>
             </div>
           </div>
