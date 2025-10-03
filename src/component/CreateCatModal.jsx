@@ -384,7 +384,11 @@ export default function CreateCatModal({ onClose }) {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
-        setCourses(data || []);
+        // select only courses with has_cat true
+          const filteredCourses = data.filter(course => course.has_cat);
+
+        // setCourses(data || []);
+        setCourses(filteredCourses || []);
       } catch (err) {
         console.error("Error fetching courses:", err);
         toast.error("Failed to fetch courses");
