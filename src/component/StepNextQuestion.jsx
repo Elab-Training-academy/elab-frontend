@@ -31,7 +31,7 @@ const StepNextQuestion = ({ sessionId, timeLimit = 300, onEndSession }) => {
         }
         return prev - 1
       })
-    }, 1000)
+    }, 9000)
 
     return () => clearInterval(timerRef.current)
   }, [])
@@ -195,13 +195,14 @@ const StepNextQuestion = ({ sessionId, timeLimit = 300, onEndSession }) => {
           <h2 className="font-semibold text-lg mb-2">
             Question {currentIndex + 1}
           </h2>
-          <p className="mb-4">{currentQuestion.question_text}</p>
+          {/* <p className="mb-4">{currentQuestion.question_text}</p> */}
+          <div dangerouslySetInnerHTML={{__html:currentQuestion.question_text}} />
 
           {currentQuestion.image_url && (
             <img
               src={currentQuestion.image_url}
               alt="Question"
-              className="mb-4 w-full rounded"
+              className="my-4 w-full rounded h-[20vh] object-contain border"
             />
           )}
 

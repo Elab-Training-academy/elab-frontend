@@ -342,7 +342,7 @@ import "react-toastify/dist/ReactToastify.css";
 import dynamic from "next/dynamic";
 
 // Dynamic import for ReactQuill
-const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 // Wrapper to prevent findDOMNode errors
 function QuillWrapper({ value, onChange }) {

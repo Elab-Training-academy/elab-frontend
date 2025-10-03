@@ -92,7 +92,7 @@ const Page = () => {
     return (
       <div className="min-h-screen bg-gray-100 p-8">
         <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-xl p-6">
-          <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">
+          <h1 className="text-xl md:text-3xl font-bold text-center mb-6 text-gray-800">
             Computer Adaptive Test (CAT)
           </h1>
 
