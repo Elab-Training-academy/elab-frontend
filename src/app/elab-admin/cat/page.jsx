@@ -532,12 +532,7 @@ export default function CatPage() {
                           value={viewModal.data.question_text || ""}
                           onChange={(content) => setViewModal(prev => ({ ...prev, data: { ...prev.data, question_text: content } }))}
                           theme="snow"
-                        />
-
-                              
-
-                     
-                    
+                        />   
                   </div>
                 </div>
 
