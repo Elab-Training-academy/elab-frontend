@@ -252,7 +252,7 @@ export default function CreateCatModal({ onClose }) {
             </div>
 
             {/* Options */}
-            <div>
+            <div> 
               <label className="block text-sm text-gray-600 mb-1">Options</label>
               {formData.options.map((option, index) => (
                 <div key={index} className="flex flex-col sm:flex-row items-center gap-2 mb-2">
