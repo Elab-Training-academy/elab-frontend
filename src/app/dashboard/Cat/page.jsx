@@ -160,8 +160,8 @@ const CATPage = () => {
                 defaultValue=""
               >
                 <option value="" disabled>-- Select a course --</option>
-                {catCourses.map(c => (
-                  <option key={c.id} value={c.id}>{c.title}</option>
+                {catCourses.map((c, i) => (
+                  <option key={i} value={c.id}>{c.title}</option>
                 ))}
               </select>
               {selectedCourse && (

@@ -252,8 +252,8 @@ const submitAnswer = async (questionId, text_answer) => {
               {loadingCourses ? (
                 <option>Loading...</option>
               ) : (
-                courses.map((c) => (
-                  <option key={c.course_id || c.id} value={c.course_id || c.id}>
+                courses.map((c, i) => (
+                  <option key={i} value={c.course_id || c.id}>
                     {c.course_name || c.title || "Unnamed Course"}
                   </option>
                 ))
