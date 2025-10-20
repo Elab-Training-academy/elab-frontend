@@ -18,6 +18,12 @@ const SmartPractice = () => {
   const [results, setResults] = useState({});
   const [loading, setLoading] = useState(false);
 
+
+  // const [answers, setAnswers] = useState({});
+  // const [results, setResults] = useState({});
+  // const [loading, setLoading] = useState(false);
+
+
   const url = useAuthStore((state) => state.url);
 
   const questionTypes = ["Mixed Practice", "Fill in the gap", "Multiple choice"];
