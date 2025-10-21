@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react"
 import SessionReview from "../component/SessionReview";
 
 
-export default function SessionReport({ sessionId, onReturnToDashboard }) {
+export default function SessionReport({ sessionId }) {
   const [report, setReport] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -10,6 +10,12 @@ export default function SessionReport({ sessionId, onReturnToDashboard }) {
 
 
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
+  const router = useRouter()
+
+  const handleReturnToDashboard = () => {
+    router.push('/dashboard') // your dashboard route
+  }
+
 
   useEffect(() => {
     if (!sessionId) {
@@ -245,9 +251,9 @@ export default function SessionReport({ sessionId, onReturnToDashboard }) {
 
           {/* Action Buttons */}
           <div className="flex gap-4">
-            {onReturnToDashboard && (
+            {handleReturnToDashboard && (
               <button
-                onClick={onReturnToDashboard}
+                onClick={handleReturnToDashboard}
                 className="flex-1 px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 font-semibold shadow-lg"
               >
                 Return to Dashboard
