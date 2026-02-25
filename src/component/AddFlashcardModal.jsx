@@ -49,7 +49,7 @@ export default function AddFlashcardModal({ isOpen, onClose, onFlashcardAdded })
       if (!token) throw new Error("No authentication token found");
 
       const categoriesResponse = await fetch(
-        "https://elab-server-xg5r.onrender.com/course-categories",
+        "https://server-aywn.onrender.com/course-categories",
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -60,7 +60,7 @@ export default function AddFlashcardModal({ isOpen, onClose, onFlashcardAdded })
       setCategories([]);
 
       const coursesResponse = await fetch(
-        "https://elab-server-xg5r.onrender.com/courses",
+        "https://server-aywn.onrender.com/courses",
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -120,7 +120,7 @@ export default function AddFlashcardModal({ isOpen, onClose, onFlashcardAdded })
         note: formData.note || ""
       };
 
-      const response = await fetch("https://elab-server-xg5r.onrender.com/flash-cards", {
+      const response = await fetch("https://server-aywn.onrender.com/flash-cards", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify(apiData)

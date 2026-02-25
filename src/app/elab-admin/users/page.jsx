@@ -102,7 +102,7 @@ function CreateUserModal({ isOpen, onClose, onUserCreated }) {
     }
 
     try {
-      const res = await fetch("https://elab-server-xg5r.onrender.com/super-admin/users", {
+      const res = await fetch("https://server-aywn.onrender.com/super-admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(form)
@@ -230,7 +230,7 @@ function EditUserModal({ isOpen, onClose, user, onUserUpdated }) {
       formData.append("role", form.role);
       if (form.profile_picture) formData.append("profile_picture", form.profile_picture);
 
-      const res = await fetch("https://elab-server-xg5r.onrender.com/super-admin/users/update-user", {
+      const res = await fetch("https://server-aywn.onrender.com/super-admin/users/update-user", {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` },
         body: formData
@@ -345,7 +345,7 @@ export default function UserManagement() {
   useEffect(() => {
     async function fetchUsers() {
       try {
-        const res = await fetch("https://elab-server-xg5r.onrender.com/super-admin/users/all", {
+        const res = await fetch("https://server-aywn.onrender.com/super-admin/users/all", {
           method: "GET",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         });
@@ -368,7 +368,7 @@ export default function UserManagement() {
 
   async function handleViewUser(id) {
     try {
-      const res = await fetch(`https://elab-server-xg5r.onrender.com/super-admin/users/${id}`, {
+      const res = await fetch(`https://server-aywn.onrender.com/super-admin/users/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       });
@@ -394,7 +394,7 @@ export default function UserManagement() {
   async function handleDeleteUser(id) {
     setDeleteLoading(true);
     try {
-      const res = await fetch(`https://elab-server-xg5r.onrender.com/super-admin/users/delete-user/?user_id=${id}`, {
+      const res = await fetch(`https://server-aywn.onrender.com/super-admin/users/delete-user/?user_id=${id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       });

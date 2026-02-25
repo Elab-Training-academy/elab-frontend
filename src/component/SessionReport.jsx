@@ -35,7 +35,7 @@ export default function SessionReport({ sessionId }) {
       setError(null)
 
       const res = await fetch(
-        `https://elab-server-xg5r.onrender.com/cat-questions/sessions/${sessionId}/report`,
+        `https://server-aywn.onrender.com/cat-questions/sessions/${sessionId}/report`,
         {
           headers: {
             "Content-Type": "application/json",

@@ -24,7 +24,7 @@ const NCLEXCourseDashboard = () => {
         const token = localStorage.getItem("token");
         if (!token) return;
         const res = await fetch(
-          "https://elab-server-xg5r.onrender.com/orders/ordered-courses",
+          "https://server-aywn.onrender.com/orders/ordered-courses",
           { headers: { Authorization: `Bearer ${token}` } }
         );
         if (!res.ok) return;
@@ -45,7 +45,7 @@ const NCLEXCourseDashboard = () => {
         const token = localStorage.getItem("token");
         if (!token) return;
         const res = await fetch(
-          "https://elab-server-xg5r.onrender.com/progress/courses",
+          "https://server-aywn.onrender.com/progress/courses",
           { headers: { Authorization: `Bearer ${token}` } }
         );
         if (!res.ok) return;
@@ -71,7 +71,7 @@ const NCLEXCourseDashboard = () => {
         const token = localStorage.getItem("token");
         if (!token || !id) return;
         const moduleRes = await fetch(
-          `https://elab-server-xg5r.onrender.com/courses/modules/${id}`,
+          `https://server-aywn.onrender.com/courses/modules/${id}`,
           {
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           }

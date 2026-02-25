@@ -35,7 +35,7 @@ export default function Flashcards() {
         return;
       }
 
-      const response = await fetch("https://elab-server-xg5r.onrender.com/flash-cards/", {
+      const response = await fetch("https://server-aywn.onrender.com/flash-cards/", {
         method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -67,7 +67,7 @@ export default function Flashcards() {
         throw new Error("No authentication token found");
       }
 
-      const response = await fetch(`https://elab-server-xg5r.onrender.com/flash-cards/${id}`, {
+      const response = await fetch(`https://server-aywn.onrender.com/flash-cards/${id}`, {
         method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -156,7 +156,7 @@ export default function Flashcards() {
         return;
       }
 
-      const response = await fetch(`https://elab-server-xg5r.onrender.com/flash-cards/${cardToDelete.id}`, {
+      const response = await fetch(`https://server-aywn.onrender.com/flash-cards/${cardToDelete.id}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -193,7 +193,7 @@ export default function Flashcards() {
         return;
       }
 
-      const url = `https://elab-server-xg5r.onrender.com/flash-cards/${cardToEdit.id}`;
+      const url = `https://server-aywn.onrender.com/flash-cards/${cardToEdit.id}`;
       
       // Try different HTTP methods
       const methods = ["PUT", "POST", "PATCH"];

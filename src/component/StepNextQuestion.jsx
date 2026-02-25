@@ -33,7 +33,7 @@ export default function StepNextQuestion({ sessionId, timeLimit = 300, onEndSess
       setFetching(true)
       setError(null)
       const res = await fetch(
-        `https://elab-server-xg5r.onrender.com/cat-questions/sessions/${sessionId}/next`,
+        `https://server-aywn.onrender.com/cat-questions/sessions/${sessionId}/next`,
         {
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         }
@@ -240,7 +240,7 @@ export default function StepNextQuestion({ sessionId, timeLimit = 300, onEndSess
       console.log("submit payload:", payload, "for question type:", q.question_type)
 
       const res = await fetch(
-        `https://elab-server-xg5r.onrender.com/cat-questions/sessions/${sessionId}/responses`,
+        `https://server-aywn.onrender.com/cat-questions/sessions/${sessionId}/responses`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -301,7 +301,7 @@ export default function StepNextQuestion({ sessionId, timeLimit = 300, onEndSess
       setSubmitting(true)
       if (timerRef.current) clearInterval(timerRef.current)
       const res = await fetch(
-        `https://elab-server-xg5r.onrender.com/cat-questions/sessions/${sessionId}/end`,
+        `https://server-aywn.onrender.com/cat-questions/sessions/${sessionId}/end`,
         { method: "GET", headers: { Authorization: `Bearer ${token}` } }
       )
       if (!res.ok) {

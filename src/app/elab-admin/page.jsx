@@ -38,12 +38,12 @@ export default function Overview() {
 
     const fetchOverview = async () => {
       try {
-        const resCourse = await fetch("https://elab-server-xg5r.onrender.com/overviews/course_overview", {
+        const resCourse = await fetch("https://server-aywn.onrender.com/overviews/course_overview", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const courseData = await resCourse.json();
 
-        const resUser = await fetch("https://elab-server-xg5r.onrender.com/overviews/user_overview", {
+        const resUser = await fetch("https://server-aywn.onrender.com/overviews/user_overview", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const userData = await resUser.json();
@@ -62,7 +62,7 @@ export default function Overview() {
 
     const fetchOrders = async () => {
       try {
-        const res = await fetch("https://elab-server-xg5r.onrender.com/super-admin/orders/all", {
+        const res = await fetch("https://server-aywn.onrender.com/super-admin/orders/all", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();

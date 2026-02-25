@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 
 export const useAuthStore = create((set, get) => ({
   courses: [],
-  url: "https://elab-server-xg5r.onrender.com",
+  url: "https://server-aywn.onrender.com",
   token: null,
   user: null,
   role: null,

@@ -29,7 +29,7 @@ export default function CaseStudyDetail() {
       }
 
       try {
-        const res = await fetch(`https://elab-server-xg5r.onrender.com/case-studies`, {
+        const res = await fetch(`https://server-aywn.onrender.com/case-studies`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();

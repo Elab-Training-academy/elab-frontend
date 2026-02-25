@@ -43,7 +43,7 @@ export default function UpdateCaseStudyModal({ isOpen, onClose, caseStudy, onUpd
       };
 
       const res = await fetch(
-        `https://elab-server-xg5r.onrender.com/case-studies/${caseStudy.id}`,
+        `https://server-aywn.onrender.com/case-studies/${caseStudy.id}`,
         {
           method: "PUT",
           headers: {

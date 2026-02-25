@@ -25,7 +25,7 @@ export default function SessionReview({ sessionId, onReturnToDashboard }) {
       setError(null)
 
       const res = await fetch(
-        `https://elab-server-xg5r.onrender.com/cat-questions/sessions/${sessionId}/review`,
+        `https://server-aywn.onrender.com/cat-questions/sessions/${sessionId}/review`,
         {
           headers: {
             "Content-Type": "application/json",

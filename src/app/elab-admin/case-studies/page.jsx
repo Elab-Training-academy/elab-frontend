@@ -52,7 +52,7 @@ export default function CaseStudies() {
       }
 
       try {
-        const res = await fetch("https://elab-server-xg5r.onrender.com/case-studies", {
+        const res = await fetch("https://server-aywn.onrender.com/case-studies", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -88,7 +88,7 @@ export default function CaseStudies() {
     if (!token) return;
 
     try {
-      await fetch(`https://elab-server-xg5r.onrender.com/case-studies/${caseToDelete.id}`, {
+      await fetch(`https://server-aywn.onrender.com/case-studies/${caseToDelete.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });

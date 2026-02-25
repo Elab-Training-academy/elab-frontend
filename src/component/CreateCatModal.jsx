@@ -44,7 +44,7 @@ export default function CreateCatModal({ onClose }) {
     const fetchCourses = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("https://elab-server-xg5r.onrender.com/courses", {
+        const res = await fetch("https://server-aywn.onrender.com/courses", {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -112,7 +112,7 @@ export default function CreateCatModal({ onClose }) {
         }
       });
 
-      const res = await fetch("https://elab-server-xg5r.onrender.com/cat-questions", {
+      const res = await fetch("https://server-aywn.onrender.com/cat-questions", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body,

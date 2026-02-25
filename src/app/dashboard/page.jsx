@@ -25,7 +25,7 @@ const Dashboard = () => {
         if (!token) return;
 
         const res = await fetch(
-          "https://elab-server-xg5r.onrender.com/orders/ordered-courses",
+          "https://server-aywn.onrender.com/orders/ordered-courses",
           {
             headers: { Authorization: `Bearer ${token}` },
           }

@@ -46,7 +46,7 @@ export default function CreateModuleModal({ isOpen, onClose, courseId, onModuleC
       data.append("material", formData.material);
     }
 
-    const res = await fetch("https://elab-server-xg5r.onrender.com/modules/create", {
+    const res = await fetch("https://server-aywn.onrender.com/modules/create", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,

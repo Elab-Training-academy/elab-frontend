@@ -58,7 +58,7 @@ export default function CatPage() {
       const token = localStorage.getItem("token");
       
       const res = await fetch(
-        "https://elab-server-xg5r.onrender.com/cat-questions?limit=100&skip=0",
+        "https://server-aywn.onrender.com/cat-questions?limit=100&skip=0",
         {
           method: "GET",
           headers: {
@@ -110,7 +110,7 @@ export default function CatPage() {
     const token = localStorage.getItem("token");
     try {
       const res = await fetch(
-        `https://elab-server-xg5r.onrender.com/cat-questions/${id}`,
+        `https://server-aywn.onrender.com/cat-questions/${id}`,
         {
           method: "GET",
           headers: {
@@ -136,7 +136,7 @@ export default function CatPage() {
     const token = localStorage.getItem("token");
     try {
       const res = await fetch(
-        `https://elab-server-xg5r.onrender.com/cat-questions/${id}`,
+        `https://server-aywn.onrender.com/cat-questions/${id}`,
         {
           method: "GET",
           headers: {
@@ -177,7 +177,7 @@ export default function CatPage() {
 
     try {
       const res = await fetch(
-        `https://elab-server-xg5r.onrender.com/cat-questions/${editModal.data.id}`,
+        `https://server-aywn.onrender.com/cat-questions/${editModal.data.id}`,
         {
           method: "PUT",
           headers: { Authorization: `Bearer ${token}` },
@@ -215,7 +215,7 @@ export default function CatPage() {
     const token = localStorage.getItem("token");
     try {
       const res = await fetch(
-        `https://elab-server-xg5r.onrender.com/cat-questions/${deleteModal.id}`,
+        `https://server-aywn.onrender.com/cat-questions/${deleteModal.id}`,
         {
           method: "DELETE",
           headers: {

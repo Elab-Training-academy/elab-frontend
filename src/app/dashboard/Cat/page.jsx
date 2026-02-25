@@ -44,7 +44,7 @@ const CATPage = () => {
     const fetchSessions = async () => {
       try {
         const res = await fetch(
-          "https://elab-server-xg5r.onrender.com/cat-questions/users/sessions/",
+          "https://server-aywn.onrender.com/cat-questions/users/sessions/",
           { headers: { Authorization: `Bearer ${token}` } }
         );
         if (!res.ok) throw new Error(`Failed to fetch sessions: ${res.status}`);
@@ -70,7 +70,7 @@ const CATPage = () => {
     setDailyLimitReached(false);
     try {
       const res = await fetch(
-        `https://elab-server-xg5r.onrender.com/cat-questions/sessions/start/?course_id=${selectedCourse}&time_limit=20`,
+        `https://server-aywn.onrender.com/cat-questions/sessions/start/?course_id=${selectedCourse}&time_limit=20`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const data = await res.json();

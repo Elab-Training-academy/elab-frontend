@@ -29,7 +29,7 @@ export default function CourseCategoryDetails() {
     }
 
         const res = await fetch(
-          `https://elab-server-xg5r.onrender.com/course-categories/${id}`,
+          `https://server-aywn.onrender.com/course-categories/${id}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
